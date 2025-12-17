@@ -1,6 +1,12 @@
 
 ## Turbo Intruder (BurpSuite extension)
 
+Turbo Intruder allows you to execute a large number of requests, without the throttling effects of Burpsuite Community Edition
+
+The Turbo Intruder window is divided into two sections. In the first section at the top, you can edit the HTTP request. In this section, you can also add insertion points for your payloads.
+
+The second section at the bottom allows you to filter the responses and take action based on the responses returned from the target. It also provides the ability to write custom Python code to better customise your fuzzing script.
+
 ---
 ### Quick Tip
 
