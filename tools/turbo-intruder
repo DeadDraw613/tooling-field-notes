@@ -1,0 +1,19 @@
+
+## Turbo Intruder (BurpSuite extension)
+
+### Output response headers to file
+```
+def handleResponse(req, interesting):
+    if interesting:
+        table.add(req)
+        
+        data = req.response.encode('utf8')
+        
+        # Extract header and body
+        header, _, body = data.partition('\r\n\r\n')
+        
+        # Save body to file /tmp/output-turbo.txt
+        output_file = open("/tmp/output-turbo.txt","a+")
+        output_file.write(body + "\n")
+        output_file.close()
+```
