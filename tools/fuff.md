@@ -326,10 +326,3 @@ ffuf -w passwords.txt:FUZZPASS,Lab_names.txt:FUZZUSER \
      -mr "You have successfully logged in"
 ```
 
----
-
-## Notes
-
-* FFUF shines once the request format is known
-* Filtering noisy responses early saves significant time
-* Raw request files make complex auth and API testing much easier
