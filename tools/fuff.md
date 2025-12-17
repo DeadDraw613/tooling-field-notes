@@ -21,7 +21,6 @@ throttled dictionary attacks, API fuzzing, and large wordlists.
 ## Core Concepts
 
 * **Start from a known request**: Capture a working request (Burp → Save raw request).
-* **Fuzz one variable at a time**: Replace the target value with `FUZZ`.
 * **Filter first, then match**: Identify the “noise” response (size/words/lines),
   cancel the run, and re-run with filters or matchers.
 * **Proxy when needed**: Route traffic through Burp for inspection or modification.
