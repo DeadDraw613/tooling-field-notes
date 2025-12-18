@@ -1,6 +1,7 @@
 ## TCPDump
 
->  Best Practice
+Tip: _Dont grep tcpdump. CPU killer_  
+
 >  It is considered best practice to enclose your capture filters inside single-quotes
 >  See the second example in the list highlihts below 
 
@@ -17,6 +18,60 @@ $ sudo tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)
 $ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
 ```
 
+---
+`# tcpdump -D` show all available devices  
+`# tcpdump -c 100` capture 100 packets  
+`# tcpdump -w file.cap` write to file  
+`# tcpdump -r file.cap` read to file  
+`# tcpdump -nni [eth0|any]` specify interface (**-i**)   
+`# tcpdump -enni eth0 port 8116` show mac addresses (**-e**)  
+`# tcpdump -v` verbose  
+
+**Protocols**  
+proto 1 = ICMP  
+proto 6 = TCP  
+proto 17 = UDP  
+proto 50 = ESP  
+proto 51 = AH
+
+`tcpdump -nni eth0 port 8116`    specify port
+`tcpdump -nni eth3 ip proto 17`  specify protocol
+`tcpdump -nni eth3 icmp`         specify protocol
+`tcpdump -nni eth3 esp`          esp packets
+
+**Data and Hex**  
+`tcpdump -nni eth1 icmp -XX`  Hex and ASCII data
+`tcpdup -nni eth0 esp -XX`    ESP enrcrypted`
+
+**Conditionals**  
+_dst, src, host(dst and host), port_  
+  
+`# tcpdump -nni eth0 dst 10.2.1.3 and not port 22` AND NOT  
+`# tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2` OR  
+  
+```
+$ sudo tcpdump -nni wlan0 -XX -v
+```
+```
+tcpdump: 
+listening on wlan0, 
+link-type EN10MB (Ethernet), 
+snapshot length 262144 bytes   
+23:30:34.928808 
+IP (tos 0x0, ttl 64, id 6206, offset 0, flags [DF], proto UDP (17), length 144) 192.168.5.18.47088 > 52.4.198.155.1194: UDP, 
+length 116   
+
+0x0000: 26ad f111 34f1 b0a4 60ba 656c 0800 4500 &...4...`.el..E.   
+0x0010: 0090 183e 4000 4011 61c5 c0a8 0512 3404 ...>@.@.a.....4.   
+0x0020: c69b b7f0 04aa 007c ace5 4800 00a6 8a37 .......|..H....7   
+0x0030: dfc3 4ede 48ee 6753 a6ea 0278 9dd2 4ea7 ..N.H.gS...x..N.   
+0x0040: de81 2747 972a 8040 921c 19ba 0098 5a00 ..'G.*.@......Z.   
+0x0050: 082d 4bac 0d8c dbc7 ea73 6981 188a 0ef4 .-K......si.....   
+0x0060: 7d16 d5b4 81f9 2e7b 8389 4bdd c843 51f4 }......{..K..CQ.   
+0x0070: a9a9 e071 5d1c 873f aeb7 e459 87c5 659d ...q]..?...Y..e.   
+0x0080: ecc3 9645 83c3 0460 a53e 44db 54c4 82b9 ...E...`.>D.T...   
+0x0090: efa6 d401 c992 f07b 5c08 c775 6774 .......{\..ugt
+```
 ---
 
 ## First The Basics
