@@ -5,7 +5,7 @@
 
 ### Overview
 
-This repository contains **personal field notes and proof-of-concepts** documenting how I experimented with various tools. The goal is not to teach these tools from scratch, but to capture **usage patterns, edge cases, and observations** discovered while testing web applications and APIs in lab and test environments with these tools.
+This repository contains **personal field notes and proof-of-concepts** documenting how I experimented with various tools related to web and network traffic capture and analysis. The goal is not to teach these tools from scratch, but to capture **usage patterns, edge cases, and observations** discovered while testing web applications and APIs in lab and test environments with these tools.
 
 ---
 
@@ -29,6 +29,7 @@ This repository is best read as a **working notebook**, not a reference manual.
   |- postman
   |- python Requests.lib
   |- Turbo Intruder (BurpSuite extension)
+  |- Wireshark
 README.md
 ```
 ---
