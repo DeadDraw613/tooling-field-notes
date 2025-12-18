@@ -34,10 +34,12 @@ proto 17 = UDP
 proto 50 = ESP  
 proto 51 = AH
 
-`tcpdump -nni eth0 port 8116`    specify port
-`tcpdump -nni eth3 ip proto 17`  specify protocol
-`tcpdump -nni eth3 icmp`         specify protocol
-`tcpdump -nni eth3 esp`          esp packets
+```
+tcpdump -nni eth0 port 8116      // specify port
+tcpdump -nni eth3 ip proto 17    // specify protocol by number
+tcpdump -nni eth3 icmp           // specify protocol by name
+tcpdump -nni eth3 esp            // esp packets
+```
 
 **Data and Hex**  
 `tcpdump -nni eth1 icmp -XX`  Hex and ASCII data
