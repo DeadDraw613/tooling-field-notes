@@ -2,9 +2,11 @@
 
 The Syntax for this capture filter is defined by libpcap/WinPcap library.
 
-In the TCPDump example, we have the follwoing targeted examples to retrieve only GET and POST packets
+In the TCPDump example, we have the following targeted examples to retrieve only GET and POST packets
 ```d
+// GET
 $ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
+//POST
 $ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x504f5354'
 ```
 
