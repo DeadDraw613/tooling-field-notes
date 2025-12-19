@@ -179,7 +179,35 @@ $ curl -X PUT \
 ```
 # curl https://swapi.dev/api/people/1/ 
 
-{"name":"Luke Skywalker","height":"172","mass":"77","hair_color":"blond","skin_color":"fair","eye_color":"blue","birth_year":"19BBY","gender":"male","homeworld":"https://swapi.dev/api/planets/1/","films":["https://swapi.dev/api/films/1/","https://swapi.dev/api/films/2/","https://swapi.dev/api/films/3/","https://swapi.dev/api/films/6/"],"species":[],"vehicles":["https://swapi.dev/api/vehicles/14/","https://swapi.dev/api/vehicles/30/"],"starships":["https://swapi.dev/api/starships/12/","https://swapi.dev/api/starships/22/"],"created":"2014-12-09T13:50:51.644000Z","edited":"2014-12-20T21:17:56.891000Z","url":"https://swapi.dev/api/people/1/"}    
+{
+   "name":"Luke Skywalker",
+   "height":"172",
+   "mass":"77",
+   "hair_color":"blond",
+   "skin_color":"fair",
+   "eye_color":"blue",
+   "birth_year":"19BBY",
+   "gender":"male",
+   "homeworld":"https://swapi.dev/api/planets/1/",
+   "films":[
+      "https://swapi.dev/api/films/1/",
+      "https://swapi.dev/api/films/2/",
+      "https://swapi.dev/api/films/3/",
+      "https://swapi.dev/api/films/6/"
+   ],
+   "species":[],
+   "vehicles":[
+      "https://swapi.dev/api/vehicles/14/",
+      "https://swapi.dev/api/vehicles/30/"
+   ],
+   "starships":[
+      "https://swapi.dev/api/starships/12/",
+      "https://swapi.dev/api/starships/22/"
+   ],
+   "created":"2014-12-09T13:50:51.644000Z",
+   "edited":"2014-12-20T21:17:56.891000Z",
+   "url":"https://swapi.dev/api/people/1/"
+}    
 ```
 
 ```
@@ -187,34 +215,38 @@ $ curl --proxy http://localhost:8080 https://swapi.dev/api/people/1/ -k
 {"name":"Luke Skywalker","height":"172","mass":"77","hair_color":"blond","skin_color":"fair","eye_color":"blue","birth_year":"19BBY","gender":"male","homeworld":"https://swapi.dev/api/planets/1/","films":["https://swapi.dev/api/films/1/","https://swapi.dev/api/films/2/","https://swapi.dev/api/films/3/","https://swapi.dev/api/films/6/"],"species":[],"vehicles":["https://swapi.dev/api/vehicles/14/","https://swapi.dev/api/vehicles/30/"],"starships":["https://swapi.dev/api/starships/12/","https://swapi.dev/api/starships/22/"],"created":"2014-12-09T13:50:51.644000Z","edited":"2014-12-20T21:17:56.891000Z","url":"https://swapi.dev/api/people/1/"}  
 ```
 
-
+---
 
 Get JWT Web tokens from accounts
 ```
 $ curl -X POST -H "Content-Type: application/json" -d '{"username": "jeremy", "password": "cheesecake"}' http://localhost/labs/api/login.php
-{"status":"success","token":"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=."}                                          
-```
 
+{   "status":"success",
+    "token":"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=."
+}                                          
+```
 ```
 $ curl -X POST -H "Content-Type: application/json" -d '{"username": "jessamy", "password": "tiramisu"}' http://localhost/labs/api/login.php
-{"status":"success","token":"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVzc2FteSIsInJvbGUiOiJhZG1pbiJ9."}  
+
+{  "status":"success",
+   "token":"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVzc2FteSIsInJvbGUiOiJhZG1pbiJ9."
+}  
 ```
 
-Jeremy JWT
+**Jeremy JWT**
 eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=.
-Jessamy JWT
+**Jessamy JWT**
 eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVzc2FteSIsInJvbGUiOiJhZG1pbiJ9.
-
 
 ```
 $ curl -X POST -H "Content-Type: application/json" -d '{"username": "jeremy", "password": "cheesecake"}' http://localhost/labs/api/login.php
 
 {
-"status":"success",
-"token":"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=."
+    "status":"success",
+    "token":"eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=."
 }
-
-
+```
+```
 $ curl -X GET "http://localhost/labs/api/account.php?token=eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=."
 
 {
@@ -222,12 +254,22 @@ $ curl -X GET "http://localhost/labs/api/account.php?token=eyJhbGciOiJub25lIiwid
 	"role":"staff",
 	"bio":"Java programmer."
 }     
+```
+```
+$ curl -X PUT -H "Content-Type: application/json" \
+    -d '{"token": "yJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=.", \
+           "username":"jeremy",
+           "bio": "New bio informationXX."
+         }'
+    http://localhost/labs/api/account.php
 
+{
+   "status":"success",
+   "message":"Bio updated successfully"
+}
 
-$ curl -X PUT -H "Content-Type: application/json" -d '{"token": "yJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=.", "username":"jeremy", "bio": "New bio informationXX."}' http://localhost/labs/api/account.php
-
-{"status":"success","message":"Bio updated successfully"}                                                                
-
+```               
+```
 
 $ curl -X GET "http://localhost/labs/api/account.php?token=eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0=.eyJ1c2VyIjoiamVyZW15Iiwicm9sZSI6InN0YWZmIn0=."                                                                                                   
 {
