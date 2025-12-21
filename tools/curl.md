@@ -26,7 +26,7 @@ curl -X POST \
   http://localhost/labs/api/login.php
 ```
 Supports local, logical, and absolute paths
-```
+```sh
 -d @payload.json
 -d @payloads/auth/login.json
 -d @/home/jason/curl/payloads/auth/login.json
@@ -37,22 +37,22 @@ Supports local, logical, and absolute paths
 ### 1. Basics & Inspection
 
 To get all resources from an API endpoint, use:
-```
+```sh
 curl https://jsonplaceholder.typicode.com/posts
 ```
 
 To get a single resource by ID, use:
-```
+```sh
 curl https://jsonplaceholder.typicode.com/posts/3
 ```
 
 To get the response headers and body together, use:
-```
+```sh
 curl -i https://jsonplaceholder.typicode.com/posts/3
 ```
 
 To get only response headers (HEAD request), use:
-```
+```sh
 curl -I https://jsonplaceholder.typicode.com/posts/3
 ```
 
