@@ -7,11 +7,11 @@
 sudo tcpdump -i eth0
 ```
 
--i = interface  
--v = verbose  
--s0 = capture full packet  
--n = no DNS resolution  
--A = print ASCII
+ - i = interface  
+ - v = verbose  
+ - s0 = capture full packet  
+ - n = no DNS resolution  
+ - A = print ASCII
 
 #### DATA AND HEX OUTPUT
 
