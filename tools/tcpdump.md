@@ -1,7 +1,5 @@
 ## TCPDUMP Field Guide
 
----
-
 ### 1. Basic command
 ```
 sudo tcpdump -i eth0
