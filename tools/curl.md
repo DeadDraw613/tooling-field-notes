@@ -1,3 +1,234 @@
+## cURL Field Guide
+
+A practical, lab-friendly reference for using curl to inspect HTTP traffic, test APIs, debug authentication, and reproduce requests outside of Postman.
+
+### Using Payload Files for cURL Requests
+
+When sending JSON or large payloads with cURL, it’s safer and more maintainable to use an external file rather than inline JSON. This avoids shell quoting issues, makes commands easier to read, and allows reuse for multiple tests.
+
+#### Example
+
+Create a file named `payload.json`:
+
+```json
+{
+  "username": "jeremy",
+  "password": "cheesecake"
+}
+```
+Send it with cURL using the @ symbol:
+```sh
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d @payload.json \
+  http://localhost/labs/api/login.php
+```
+Supports local, logical, and absolute paths
+```
+-d @payload.json
+-d @payloads/auth/login.json
+-d @/home/jason/curl/payloads/auth/login.json
+```
+
+---
+
+### 1. Basics & Inspection
+
+To get all resources from an API endpoint, use:
+```
+curl https://jsonplaceholder.typicode.com/posts
+```
+
+To get a single resource by ID, use:
+```
+curl https://jsonplaceholder.typicode.com/posts/3
+```
+
+To get the response headers and body together, use:
+```
+curl -i https://jsonplaceholder.typicode.com/posts/3
+```
+
+To get only response headers (HEAD request), use:
+```
+curl -I https://jsonplaceholder.typicode.com/posts/3
+```
+
+--------------------------------------------------
+
+### 2. HTTP Methods (CRUD)
+
+To create a new resource using POST form data, use:
+```
+curl -d "id=3&body=hello World" https://jsonplaceholder.typicode.com/posts
+```
+
+To create a new resource using POST data from external file (payload.json), use:
+```
+// payload.json
+{
+  "username": "jeremy",
+  "password": "cheesecake"
+}
+```
+
+```
+curl -d @payload.json https://jsonplaceholder.typicode.com/posts
+```
+
+
+To update an existing resource using PUT, use:
+```
+curl -X PUT -d "body=hello World" https://jsonplaceholder.typicode.com/posts/3
+```
+
+To delete a resource by ID, use:
+```
+curl -X DELETE https://jsonplaceholder.typicode.com/posts/3
+```
+
+To force a non-standard or discovery HTTP method, use:
+```
+curl -X OPTIONS http://localhost/api
+```
+
+--------------------------------------------------
+
+### 3. Headers & Content Types
+
+To set the Content-Type header for JSON APIs, use:
+```
+curl -H "Content-Type: application/json" https://reqbin.com/echo/post/json
+```
+
+Common Content-Type values:
+- application/json
+- image/png
+- text/html; charset=UTF-8
+- multipart/form-data
+
+To add multiple custom headers to a request, use:
+```
+curl -X POST \
+-H "Content-Type: application/json" \
+-H "Disclaimer: BugBounty Hunter ID 2834508" \
+-d '{"username":"jeremy","password":"cheesecake"}' \
+http://localhost/labs/api/login.php
+```
+
+--------------------------------------------------
+
+### 4. Authentication
+
+Basic Authentication:
+```
+curl -u admin:password http://localhost/index.php
+```
+
+Bearer Token Authentication:
+```
+curl -H "Authorization: Bearer {token}" https://reqbin.com/echo
+```
+
+JWT Authentication (Lab Workflow):
+```
+curl -X POST \
+-H "Content-Type: application/json" \
+-d '{"username":"jeremy","password":"cheesecake"}'\
+http://localhost/labs/api/login.php
+```
+
+--------------------------------------------------
+
+### 5. Cookies & Sessions
+
+To send a cookie with a request, use:
+```
+curl -b "cookie_name=cookie_value" https://reqbin.com/echo
+```
+
+To store cookies returned by a server, use:
+```
+curl -c cookies.txt http://example.com/login
+```
+
+To reuse stored cookies in later requests, use:
+```
+curl -b cookies.txt http://example.com/dashboard
+```
+
+--------------------------------------------------
+
+### 6. Redirects & Navigation
+
+To follow redirects automatically, use:
+```
+curl -L http://localhost/index.php
+```
+
+--------------------------------------------------
+
+### 7. Files & Transfers
+
+Download a file with a custom filename:
+```
+curl -o myfile.txt http://thesource.com/somefile.txt
+```
+
+Download a file using original filename:
+```
+curl -O http://thesource.com/somefile.txt
+```
+
+--------------------------------------------------
+
+### 8. Debugging & Visibility
+
+Verbose output:
+```
+curl -v https://example.com
+```
+
+Trace raw request:
+```
+curl --trace-ascii - https://example.com
+```
+
+Pretty-print JSON:
+```
+curl https://api.example.com/data | jq .
+```
+
+--------------------------------------------------
+
+### 9. Proxying & Interception (Burp)
+
+```
+curl --proxy http://127.0.0.1:8080 https://swapi.dev/api/people/1/
+```
+
+--------------------------------------------------
+
+### 10. Reliability & Control
+
+Fail fast:
+```
+curl --connect-timeout 5 --max-time 10 http://example.com
+```
+
+Retry request:
+```
+curl --retry 3 --retry-delay 2 http://example.com
+```
+
+--------------------------------------------------
+
+### TBFT – To Be Further Tested
+
+Commands that require additional lab configuration to verify output.
+
+===
+
 ### cURL examples
 
 ```sh
