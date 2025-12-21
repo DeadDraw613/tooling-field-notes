@@ -1,3 +1,274 @@
+TCPDUMP CHEAT SHEET / GUIDE
+
+---
+
+1. Basic command
+sudo tcpdump -i eth0
+
+-i = interface  
+-v = verbose  
+-s0 = capture full packet  
+-n = no DNS resolution  
+-A = print ASCII
+
+---
+
+2. Capture only HTTP GET and POST packets
+
+GET
+sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
+
+POST
+sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x504f5354'
+
+Explanation: selects 4 bytes at the TCP header offset and matches ASCII for GET or POST.
+
+---
+
+3. Extract HTTP Request URLs
+
+sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
+
+---
+
+4. Extract HTTP Passwords in POST Requests
+
+sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
+
+---
+
+5. Capture Cookies from Server and Client
+
+sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
+
+---
+
+6. Capture all ICMP packets
+
+sudo tcpdump -n icmp
+
+---
+
+7. Show ICMP packets that are not echo/reply
+
+sudo tcpdump 'icmp[icmptype] != icmp-echo and icmp[icmptype] != icmp-echoreply'
+
+---
+
+8. Capture SMTP / POP3 Email recipients
+
+sudo tcpdump -nn -l port 25 | grep -i 'MAIL FROM\|RCPT TO'
+
+---
+
+9. Troubleshooting NTP Query/Response
+
+sudo tcpdump dst port 123
+
+---
+
+10. Capture SNMP Query and Response
+
+onesixtyone 10.10.1.10 public  
+sudo tcpdump -n -s0 port 161 and udp
+
+---
+
+11. Capture FTP credentials and commands
+
+sudo tcpdump -nn -v port ftp or ftp-data
+
+---
+
+12. Rotate Capture Files
+
+tcpdump -w /tmp/capture-%H.pcap -G 3600 -C 200
+
+---
+
+13. Capture IPv6 traffic
+
+tcpdump -nn ip6 proto 6  
+tcpdump -nr ipv6-test.pcap ip6 proto 17
+
+---
+
+14. Detect port scan in network traffic
+
+tcpdump -nn
+
+Look for SYN [S] packets to multiple ports followed by RST [R.] responses.
+
+---
+
+15. Example: Nmap NSE Script Testing
+
+On Nmap machine:
+nmap -p 80 --script=http-enum.nse $targetip
+
+On target machine:
+tcpdump -nn port 80 | grep "GET /"
+
+---
+
+16. Capture start and end packets of every non-local host
+
+tcpdump 'tcp[tcpflags] & (tcp-syn|tcp-fin) != 0 and not src and dst net localnet'
+
+---
+
+17. Capture DNS request and response
+
+sudo tcpdump -i wlp58s0 -s0 port 53
+
+---
+
+18. Capture HTTP data packets only (avoid SYN/FIN)
+
+tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
+
+---
+
+19. Capture with tcpdump and view in Wireshark
+
+ssh root@remotesystem 'tcpdump -s0 -c 1000 -nn -w - not port 22' | wireshark -k -i -
+
+---
+
+20. Top hosts by packets
+
+sudo tcpdump -nnn -t -c 200 | cut -f 1,2,3,4 -d '.' | sort | uniq -c | sort -nr | head -n 20
+
+---
+
+21. Capture all plaintext passwords
+
+sudo tcpdump port http or port ftp or port smtp or port imap or port pop3 or port telnet -l -A | egrep -i -B5 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|username:|password:|login:|pass |user '
+
+---
+
+22. DHCP example
+
+sudo tcpdump -v -n port 67 or 68
+
+---
+
+ADDITIONAL COMMON USE CASES
+
+---
+
+23. Capture ARP traffic
+
+tcpdump -i eth0 arp
+
+---
+
+24. Capture a range of ports
+
+tcpdump 'tcp portrange 1000-2000'
+
+---
+
+25. Limit capture by packet size
+
+tcpdump -s 128 tcp
+
+---
+
+26. Capture only SYN packets
+
+tcpdump 'tcp[tcpflags] & tcp-syn != 0'
+
+---
+
+27. Filter out noise (e.g., SSH and broadcast)
+
+tcpdump not port 22 and not broadcast
+
+---
+
+28. Capture TLS/SSL handshake traffic
+
+tcpdump -i eth0 port 443 -w tls.pcap
+
+---
+
+29. Time-based filtering / limited duration
+
+tcpdump -i eth0 -G 3600 -w capture-%H.pcap
+
+---
+
+30. Monitoring bandwidth / packet sizes
+
+tcpdump -i eth0 -nn -q
+
+---
+
+31. Capture multicast / broadcast traffic
+
+tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
+
+---
+
+32. Reading from multiple capture files
+
+tcpdump -r 'capture-*.pcap'
+
+---
+
+33. Custom complex expression
+
+tcpdump 'tcp port 80 and host 10.0.0.5 and not src 10.0.0.1'
+
+---
+
+FILTERS
+
+src 172.17.0.1       // outgoing traffic from this IP  
+dst 172.17.0.1       // incoming traffic to this IP  
+host 172.17.0.1      // in/out traffic for this host  
+
+net 192.168.2.0/24   // entire subnet  
+net 172.17.0.0/16  
+net 10.0.0.0/8  
+
+tcpdump -i docker0 -v tcp and dst 172.17.0.1
+
+---
+
+INTERFACE HELP
+
+tcpdump -D
+
+1.eth0  
+2.docker0  
+3.veth2629542  
+4.any  
+5.lo  
+
+Use `-i <interface>` to select.
+
+---
+
+SOURCE / DESTINATION EXAMPLES
+
+Capture traffic going to server:
+sudo tcpdump -i docker0 -v dst 172.17.0.1
+
+Capture traffic from client:
+sudo tcpdump -i docker0 -v src 172.17.0.1
+
+Capture all traffic for a host:
+sudo tcpdump -i docker0 -v host 172.17.0.2
+
+---
+
+
+
+
+
+---
 ## TCPDump
 
 Tip: _Dont grep tcpdump. CPU killer_  
