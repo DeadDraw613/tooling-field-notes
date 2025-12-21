@@ -26,6 +26,51 @@ Capture ESP packets with hex and ASCII output (payload will be encrypted)
 tcpdump -nni eth0 esp -XX
 ```
 
+#### FILTERS
+```
+src 172.17.0.1       // outgoing traffic from this IP  
+dst 172.17.0.1       // incoming traffic to this IP  
+host 172.17.0.1      // in/out traffic for this host  
+```
+```
+net 192.168.2.0/24   // entire subnet  
+net 172.17.0.0/16  
+net 10.0.0.0/8  
+```
+```
+tcpdump -i docker0 -v tcp and dst 172.17.0.1
+```
+
+#### INTERFACE HELP
+```
+tcpdump -D
+```
+```
+1.eth0  
+2.docker0  
+3.veth2629542  
+4.any  
+5.lo  
+```
+Use `-i <interface>` to select.
+
+#### SOURCE / DESTINATION EXAMPLES
+
+##### Capture traffic going to server:
+```
+sudo tcpdump -i docker0 -v dst 172.17.0.1
+```
+
+##### Capture traffic from client:
+```
+sudo tcpdump -i docker0 -v src 172.17.0.1
+```
+
+##### Capture all traffic for a host:
+```
+sudo tcpdump -i docker0 -v host 172.17.0.2
+```
+
 #### CONDITIONAL FILTERING
 Common directional and logical keywords:
 ```
@@ -76,6 +121,26 @@ Explanation: selects 4 bytes at the TCP header offset and matches ASCII for GET 
 ```
 sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
 ```
+```
+EXAMPLE OUTPUT - REDO FINAL
+listening on wlan0, 
+link-type EN10MB (Ethernet), 
+snapshot length 262144 bytes   
+23:30:34.928808 
+IP (tos 0x0, ttl 64, id 6206, offset 0, flags [DF], proto UDP (17), length 144) 192.168.5.18.47088 > 52.4.198.155.1194: UDP, 
+length 116   
+
+0x0000: 26ad f111 34f1 b0a4 60ba 656c 0800 4500 &...4...`.el..E.   
+0x0010: 0090 183e 4000 4011 61c5 c0a8 0512 3404 ...>@.@.a.....4.   
+0x0020: c69b b7f0 04aa 007c ace5 4800 00a6 8a37 .......|..H....7   
+0x0030: dfc3 4ede 48ee 6753 a6ea 0278 9dd2 4ea7 ..N.H.gS...x..N.   
+0x0040: de81 2747 972a 8040 921c 19ba 0098 5a00 ..'G.*.@......Z.   
+0x0050: 082d 4bac 0d8c dbc7 ea73 6981 188a 0ef4 .-K......si.....   
+0x0060: 7d16 d5b4 81f9 2e7b 8389 4bdd c843 51f4 }......{..K..CQ.   
+0x0070: a9a9 e071 5d1c 873f aeb7 e459 87c5 659d ...q]..?...Y..e.   
+0x0080: ecc3 9645 83c3 0460 a53e 44db 54c4 82b9 ...E...`.>D.T...   
+0x0090: efa6 d401 c992 f07b 5c08 c775 6774 .......{\..ugt
+```
 
 ---
 
@@ -95,299 +160,168 @@ sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
 
 ---
 
-### 6. Capture all ICMP packets
+### Traffic Analysis Examples
 
+
+#### Capture HTTP data packets only (avoid SYN/FIN)
 ```
-sudo tcpdump -n icmp
-```
-
----
-
-### 7. Show ICMP packets that are not echo/reply
-
-```
-sudo tcpdump 'icmp[icmptype] != icmp-echo and icmp[icmptype] != icmp-echoreply'
+tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
 ```
 
----
-
-### 8. Capture SMTP / POP3 Email recipients
-
+#### Capture start and end packets of every non-local host
 ```
-sudo tcpdump -nn -l port 25 | grep -i 'MAIL FROM\|RCPT TO'
+tcpdump 'tcp[tcpflags] & (tcp-syn|tcp-fin) != 0 and not src and dst net localnet'
 ```
 
----
-
-### 9. Troubleshooting NTP Query/Response
-
+#### Top hosts by packets
 ```
-sudo tcpdump dst port 123
+sudo tcpdump -nnn -t -c 200 | cut -f 1,2,3,4 -d '.' | sort | uniq -c | sort -nr | head -n 20
 ```
 
----
-
-### 10. Capture SNMP Query and Response
-
-```
-onesixtyone 10.10.1.10 public  
-sudo tcpdump -n -s0 port 161 and udp
-```
-
----
-
-### 11. Capture FTP credentials and commands
-
-```
-sudo tcpdump -nn -v port ftp or ftp-data
-```
-
----
-
-### 12. Rotate Capture Files
-
+#### Rotate Capture Files
 ```
 tcpdump -w /tmp/capture-%H.pcap -G 3600 -C 200
 ```
 
----
-
-### 13. Capture IPv6 traffic
-
+#### Capture a range of ports
 ```
-tcpdump -nn ip6 proto 6  
-tcpdump -nr ipv6-test.pcap ip6 proto 17
+tcpdump 'tcp portrange 1000-2000'
 ```
 
+#### Filter out noise (e.g., SSH and broadcast)
+```
+tcpdump not port 22 and not broadcast
+```
+
+#### Time-based filtering / limited duration
+```
+tcpdump -i eth0 -G 3600 -w capture-%H.pcap
+```
 ---
 
-### 14. Detect port scan in network traffic
+### Unique Usecase Examples
 
+#### Limit capture by packet size
+```
+tcpdump -s 128 tcp
+```
+
+#### Monitoring bandwidth / packet sizes
+```
+tcpdump -i eth0 -nn -q
+```
+
+#### Custom complex expression
+```
+tcpdump 'tcp port 80 and host 10.0.0.5 and not src 10.0.0.1'
+```
+
+#### Capture with tcpdump and view in Wireshark
+```
+ssh root@remotesystem 'tcpdump -s0 -c 1000 -nn -w - not port 22' | wireshark -k -i -
+```
+
+#### Reading from multiple capture files
+```
+tcpdump -r 'capture-*.pcap'
+```
+---
+
+### Security Specific Examples
+
+
+#### Detect port scan in network traffic
 ```
 tcpdump -nn
 ```
-
 Look for SYN [S] packets to multiple ports followed by RST [R.] responses.
 
----
-
-### 15. Example: Nmap NSE Script Testing
-
+#### Example: Nmap NSE Script Testing
 On Nmap machine:
 ```
 nmap -p 80 --script=http-enum.nse $targetip
 ```
-
 On target machine:
 ```
 tcpdump -nn port 80 | grep "GET /"
 ```
 
----
-
-### 16. Capture start and end packets of every non-local host
-
-```
-tcpdump 'tcp[tcpflags] & (tcp-syn|tcp-fin) != 0 and not src and dst net localnet'
-```
-
----
-
-### 17. Capture DNS request and response
-
-```
-sudo tcpdump -i wlp58s0 -s0 port 53
-```
-
----
-
-### 18. Capture HTTP data packets only (avoid SYN/FIN)
-
-```
-tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
-```
-
----
-
-### 19. Capture with tcpdump and view in Wireshark
-
-```
-ssh root@remotesystem 'tcpdump -s0 -c 1000 -nn -w - not port 22' | wireshark -k -i -
-```
-
----
-
-### 20. Top hosts by packets
-
-```
-sudo tcpdump -nnn -t -c 200 | cut -f 1,2,3,4 -d '.' | sort | uniq -c | sort -nr | head -n 20
-```
-
----
-
-### 21. Capture all plaintext passwords
-
+#### Capture all plaintext passwords
 ```
 sudo tcpdump port http or port ftp or port smtp or port imap or port pop3 or port telnet -l -A | egrep -i -B5 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|username:|password:|login:|pass |user '
 ```
 
----
-
-### 22. DHCP example
-
-```
-sudo tcpdump -v -n port 67 or 68
-```
-
----
-
-### ADDITIONAL COMMON USE CASES
-
-### 23. Capture ARP traffic
-
-```
-tcpdump -i eth0 arp
-```
-
----
-
-### 24. Capture a range of ports
-
-```
-tcpdump 'tcp portrange 1000-2000'
-```
-
----
-
-### 25. Limit capture by packet size
-
-```
-tcpdump -s 128 tcp
-```
-
----
-
-### 26. Capture only SYN packets
-
+#### Capture only SYN packets
 ```
 tcpdump 'tcp[tcpflags] & tcp-syn != 0'
 ```
 
 ---
 
-### 27. Filter out noise (e.g., SSH and broadcast)
+### Protocol Specific Examples
 
+#### Capture IPv6 traffic
 ```
-tcpdump not port 22 and not broadcast
+tcpdump -nn ip6 proto 6  
+tcpdump -nr ipv6-test.pcap ip6 proto 17
 ```
 
----
+#### Capture all ICMP packets
+```
+sudo tcpdump -n icmp
+```
 
-### 28. Capture TLS/SSL handshake traffic
+#### Show ICMP packets that are not echo/reply
+```
+sudo tcpdump 'icmp[icmptype] != icmp-echo and icmp[icmptype] != icmp-echoreply'
+```
 
+#### Capture SMTP / POP3 Email recipients
+```
+sudo tcpdump -nn -l port 25 | grep -i 'MAIL FROM\|RCPT TO'
+```
+
+#### Troubleshooting NTP Query/Response
+```
+sudo tcpdump dst port 123
+```
+
+#### Capture SNMP Query and Response
+```
+onesixtyone 10.10.1.10 public  
+sudo tcpdump -n -s0 port 161 and udp
+```
+
+#### Capture FTP credentials and commands
+```
+sudo tcpdump -nn -v port ftp or ftp-data
+```
+
+#### Capture DNS request and response
+```
+sudo tcpdump -i wlp58s0 -s0 port 53
+```
+
+#### DHCP example
+```
+sudo tcpdump -v -n port 67 or 68
+```
+
+#### Capture ARP traffic
+```
+tcpdump -i eth0 arp
+```
+
+#### Capture TLS/SSL handshake traffic
 ```
 tcpdump -i eth0 port 443 -w tls.pcap
 ```
 
----
-
-### 29. Time-based filtering / limited duration
-
-```
-tcpdump -i eth0 -G 3600 -w capture-%H.pcap
-```
-
----
-
-### 30. Monitoring bandwidth / packet sizes
-
-```
-tcpdump -i eth0 -nn -q
-```
-
----
-
-### 31. Capture multicast / broadcast traffic
-
+#### Capture multicast / broadcast traffic
 ```
 tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 ```
-
 ---
-
-### 32. Reading from multiple capture files
-
-```
-tcpdump -r 'capture-*.pcap'
-```
-
----
-
-### 33. Custom complex expression
-
-```
-tcpdump 'tcp port 80 and host 10.0.0.5 and not src 10.0.0.1'
-```
-
----
-
-### FILTERS
-
-```
-src 172.17.0.1       // outgoing traffic from this IP  
-dst 172.17.0.1       // incoming traffic to this IP  
-host 172.17.0.1      // in/out traffic for this host  
-```
-
-```
-net 192.168.2.0/24   // entire subnet  
-net 172.17.0.0/16  
-net 10.0.0.0/8  
-```
-
-```
-tcpdump -i docker0 -v tcp and dst 172.17.0.1
-```
-
----
-
-### INTERFACE HELP
-
-```
-tcpdump -D
-```
-
-```
-1.eth0  
-2.docker0  
-3.veth2629542  
-4.any  
-5.lo  
-```
-
-Use `-i <interface>` to select.
-
----
-
-### SOURCE / DESTINATION EXAMPLES
-
-#### Capture traffic going to server:
-```
-sudo tcpdump -i docker0 -v dst 172.17.0.1
-```
-
-#### Capture traffic from client:
-```
-sudo tcpdump -i docker0 -v src 172.17.0.1
-```
-
-#### Capture all traffic for a host:
-```
-sudo tcpdump -i docker0 -v host 172.17.0.2
-```
-
----
-
 
 
 
