@@ -1,5 +1,8 @@
 ## TCPDUMP Field Guide
 
+- [Basic Command](https://github.com/DeadDraw613/tooling-field-notes/edit/main/tools/tcpdump.md#1-basic-command)
+- [Capture HTTP GET and POST packets](https://github.com/DeadDraw613/tooling-field-notes/edit/main/tools/tcpdump.md#2-capture-only-http-get-and-post-packets)
+
 ### 1. Basic command
 ```
 sudo tcpdump -i eth0
@@ -34,7 +37,8 @@ listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
         0x0030:  6768 696a 6b6c 6d6e 6f70 7172 7374 7576  ghijklmnopqrstuv
         0x0040:  7761 6263 6465 6667 6869                 wabcdefghi
 ```
-
+		
+			
 #### FILTERS
 ```
 src 172.17.0.1       // outgoing traffic from this IP  
