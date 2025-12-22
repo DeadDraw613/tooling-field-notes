@@ -2,8 +2,16 @@
 
 - [Basic Command](#1-basic-command)
 - [Capture HTTP GET and POST packets](#2-capture-only-http-get-and-post-packets)
+- [Extract HTTP Request URLs](#extract-http-request-urls)
+- [Extract HTTP Passwords in POST Requests](#extract-http-passwords-in-post-requests)
+- [Capture Cookies from Server and Client](#capture-cookies-from-server-and-client)
+- [Traffic Analysis Examples](#traffic-analysis-examples)
+- [Unique/Interesting Usecase Examples](#uniqueinteresting-usecase-examples)
+- [Security Specific Examples](#security-specific-examples)
+- [Protocol Specific Examples](#protocol-specific-examples)
+---
 
-### 1. Basic command
+### Basic commands
 ```
 sudo tcpdump -i eth0
 ```
@@ -114,7 +122,7 @@ tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2
 
 ---
 
-### 2. Capture only HTTP GET and POST packets
+### Capture only HTTP GET and POST packets
 
 #### GET
 ```
@@ -189,7 +197,7 @@ Explanation: selects 4 bytes at the TCP header offset and matches ASCII for `GET
 
 ---
 
-### 3. Extract HTTP Request URLs
+### Extract HTTP Request URLs
 
 ```
 sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
@@ -206,7 +214,7 @@ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
 
 ---
 
-### 4. Extract HTTP Passwords in POST Requests
+### Extract HTTP Passwords in POST Requests
 
 ```
 sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
@@ -220,7 +228,7 @@ _token=gZev3GUoBtLZcNZY1Y4Fe8ZJGOuc2T01a0dDNKzE&email=dude%40dude.com&password=p
 ```
 ---
 
-### 5. Capture Cookies from Server and Client
+### Capture Cookies from Server and Client
 
 ```
 sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
@@ -373,7 +381,7 @@ tcpdump -i eth0 -G 3600 -w capture-%H.pcap
 ```
 ---
 
-### Unique Usecase Examples
+### Unique/Interesting Usecase Examples
 
 #### Limit capture by packet size
 ```
