@@ -1,7 +1,7 @@
 ## TCPDUMP Field Guide
 
-- [Basic Command](https://github.com/DeadDraw613/tooling-field-notes/edit/main/tools/tcpdump.md#1-basic-command)
-- [Capture HTTP GET and POST packets](https://github.com/DeadDraw613/tooling-field-notes/edit/main/tools/tcpdump.md#2-capture-only-http-get-and-post-packets)
+- [Basic Command](#1-basic-command)
+- [Capture HTTP GET and POST packets](#2-capture-only-http-get-and-post-packets)
 
 ### 1. Basic command
 ```
