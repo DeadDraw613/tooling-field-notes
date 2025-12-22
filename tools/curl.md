@@ -406,12 +406,13 @@ $ curl -X PUT \
 
 ### TBFT
 
-```
+```sh
 # curl -X PUT https://swapi.dev/api/people -k -d '{"name":"Bob Walker"}' 
 ```
-```
+```sh
 # curl https://swapi.dev/api/people/1/ 
-
+```
+```json
 {
    "name":"Luke Skywalker",
    "height":"172",
