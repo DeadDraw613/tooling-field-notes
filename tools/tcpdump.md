@@ -1,6 +1,6 @@
 ## TCPDUMP Field Guide
 
-- [Basic Command](#1-basic-command)
+- [Basic Usage and Syntax](#1-basic-usage-and-syntax)
 - [Capture HTTP GET and POST packets](#2-capture-only-http-get-and-post-packets)
 - [Extract HTTP Request URLs](#extract-http-request-urls)
 - [Extract HTTP Passwords in POST Requests](#extract-http-passwords-in-post-requests)
@@ -11,7 +11,7 @@
 - [Protocol Specific Examples](#protocol-specific-examples)
 ---
 
-### Basic commands
+### Basic Usage and Syntax
 ```
 sudo tcpdump -i eth0
 ```
@@ -21,6 +21,7 @@ sudo tcpdump -i eth0
  - s0 = capture full packet  
  - n = no DNS resolution  
  - A = print ASCII
+ - 
 
 #### DATA AND HEX OUTPUT
 
@@ -76,20 +77,15 @@ tcpdump -D
 Use `-i <interface>` to select.
 
 #### SOURCE / DESTINATION EXAMPLES
+```sh
+# Capture traffic going from any source to DST:
+sudo tcpdump -i ens160 -v dst 192.168.70.89
 
-##### Capture traffic going to server:
-```
-sudo tcpdump -i ens160 -v dst 172.17.0.1
-```
+# Capture traffic from specific SRC going to any destination:
+sudo tcpdump -i ens160 -v src 192.168.50.101
 
-##### Capture traffic from client:
-```
-sudo tcpdump -i ens160 -v src 172.17.0.1
-```
-
-##### Capture all traffic for a host:
-```
-sudo tcpdump -i ens160 -v host 172.17.0.2
+# Capture all traffic (incoming/outgoing) for a specific host:
+sudo tcpdump -i ens160 -v host 192.168.70.89
 ```
 
 #### CONDITIONAL FILTERING
@@ -111,12 +107,12 @@ Common directional and logical keywords:
 #### Examples:
 
 Capture traffic destined for 10.2.1.3 except SSH
-```
+```sh
 tcpdump -nni eth0 dst 10.2.1.3 and not port 22
 ```
 
 Capture traffic originating from either source host
-```
+```sh
 tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2
 ```
 
@@ -125,7 +121,7 @@ tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2
 ### Capture only HTTP GET and POST packets
 
 #### GET
-```
+```sh
 sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
 ```
 ```
@@ -154,7 +150,7 @@ Cookie: XSRF-TOKEN=eyJpdiI6IlVqU2xRU2RMY2R2ZkVJSGNYQUxMUWc9PSIsInZhbHVlIjoiaThOO
 ```
 
 #### POST
-```
+```sh
 sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x504f5354'
 ```
 ```
@@ -199,7 +195,7 @@ Explanation: selects 4 bytes at the TCP header offset and matches ASCII for `GET
 
 ### Extract HTTP Request URLs
 
-```
+```sh
 sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
 ```
 ```
@@ -216,7 +212,7 @@ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
 
 ### Extract HTTP Passwords in POST Requests
 
-```
+```sh
 sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
 ```
 ```
@@ -252,7 +248,7 @@ Host: 192.168.70.89
 
 
 #### Capture HTTP data packets only (avoid SYN/FIN)
-```
+```sh
 tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
 ```
 ```
@@ -285,7 +281,7 @@ listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 ```
 
 #### Capture start and end packets of every non-local host
-```
+```sh
 tcpdump 'tcp[tcpflags] & (tcp-syn|tcp-fin) != 0 and not src and dst net 192.168.70.89'
 ```
 ```
@@ -322,7 +318,7 @@ listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 ```
 
 #### Top hosts by packets
-```
+```sh
 sudo tcpdump -nnn -t -c 200 | cut -f 1,2,3,4 -d '.' | sort | uniq -c | sort -nr | head -n 20
 ```
 ```
@@ -337,7 +333,7 @@ listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 ```
 
 #### Rotate Capture Files
-```
+```sh
 tcpdump -w /tmp/capture-%H.pcap -G 3600 -C 200
 
 Requires permissions to test this:
@@ -346,7 +342,7 @@ https://askubuntu.com/questions/530920/tcpdump-permissions-problem
 ```
 
 #### Capture a range of ports
-```
+```sh
 tcpdump 'tcp portrange 1000-2000'
 ```
 ```
@@ -361,7 +357,7 @@ listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 ```
 
 #### Filter out noise (e.g., SSH and broadcast)
-```
+```sh
 tcpdump not port 22 and not broadcast
 ```
 ```
@@ -376,7 +372,7 @@ tcpdump not port 22 and not broadcast
 ```
 
 #### Time-based filtering / limited duration
-```
+```sh
 tcpdump -i eth0 -G 3600 -w capture-%H.pcap
 ```
 ---
@@ -384,12 +380,12 @@ tcpdump -i eth0 -G 3600 -w capture-%H.pcap
 ### Unique/Interesting Usecase Examples
 
 #### Limit capture by packet size
-```
+```sh
 tcpdump -s 128 tcp
 ```
 
 #### Monitoring bandwidth / packet sizes
-```
+```sh
 tcpdump -i eth0 -nn -q
 ```
 ```
@@ -415,17 +411,17 @@ listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 ```
 
 #### Custom complex expression
-```
+```sh
 tcpdump 'tcp port 80 and host 10.0.0.5 and not src 10.0.0.1'
 ```
 
 #### Capture with tcpdump and view in Wireshark
-```
+```sh
 ssh root@remotesystem 'tcpdump -s0 -c 1000 -nn -w - not port 22' | wireshark -k -i -
 ```
 
 #### Reading from multiple capture files
-```
+```sh
 tcpdump -r 'capture-*.pcap'
 ```
 ---
@@ -434,23 +430,23 @@ tcpdump -r 'capture-*.pcap'
 
 
 #### Detect port scan in network traffic
-```
+```sh
 tcpdump -nn
 ```
 Look for SYN [S] packets to multiple ports followed by RST [R.] responses.
 
 #### Example: Nmap NSE Script Testing
 On Nmap machine:
-```
+```sh
 nmap -p 80 --script=http-enum.nse $targetip
 ```
 On target machine:
-```
+```sh
 tcpdump -nn port 80 | grep "GET /"
 ```
 
 #### Capture all plaintext passwords
-```
+```sh
 sudo tcpdump port http or port ftp or port smtp or port imap or port pop3 or port telnet -l -A | egrep -i -B5 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|username:|password:|login:|pass |user '
 ```
 ```
@@ -465,7 +461,7 @@ _token=uvmeXZe4Tc355HeVqGDOJHzeOD5W6QvsvJPa06UQ&email=bob%40bob.com&password=pas
 ```
 
 #### Capture only SYN packets
-```
+```sh
 tcpdump 'tcp[tcpflags] & tcp-syn != 0'
 ```
 
@@ -474,64 +470,64 @@ tcpdump 'tcp[tcpflags] & tcp-syn != 0'
 ### Protocol Specific Examples
 
 #### Capture IPv6 traffic
-```
+```sh
 tcpdump -nn ip6 proto 6  
 tcpdump -nr ipv6-test.pcap ip6 proto 17
 ```
 
 #### Capture all ICMP packets
-```
+```sh
 sudo tcpdump -n icmp
 ```
 
 #### Show ICMP packets that are not echo/reply
-```
+```sh
 sudo tcpdump 'icmp[icmptype] != icmp-echo and icmp[icmptype] != icmp-echoreply'
 ```
 
 #### Capture SMTP / POP3 Email recipients
-```
+```sh
 sudo tcpdump -nn -l port 25 | grep -i 'MAIL FROM\|RCPT TO'
 ```
 
 #### Troubleshooting NTP Query/Response
-```
+```sh
 sudo tcpdump dst port 123
 ```
 
 #### Capture SNMP Query and Response
-```
+```sh
 onesixtyone 10.10.1.10 public  
 sudo tcpdump -n -s0 port 161 and udp
 ```
 
 #### Capture FTP credentials and commands
-```
+```sh
 sudo tcpdump -nn -v port ftp or ftp-data
 ```
 
 #### Capture DNS request and response
-```
+```sh
 sudo tcpdump -i wlp58s0 -s0 port 53
 ```
 
 #### DHCP example
-```
+```sh
 sudo tcpdump -v -n port 67 or 68
 ```
 
 #### Capture ARP traffic
-```
+```sh
 tcpdump -i eth0 arp
 ```
 
 #### Capture TLS/SSL handshake traffic
-```
+```sh
 tcpdump -i eth0 port 443 -w tls.pcap
 ```
 
 #### Capture multicast / broadcast traffic
-```
+```sh
 tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 ```
 ---
