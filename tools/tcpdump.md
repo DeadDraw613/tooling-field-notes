@@ -9,25 +9,60 @@
 - [Unique/Interesting Usecase Examples](#uniqueinteresting-usecase-examples)
 - [Security Specific Examples](#security-specific-examples)
 - [Protocol Specific Examples](#protocol-specific-examples)
+
+>  It is considered best practice to enclose your capture filters inside single-quotes
+>  See the second example in the list highlihts below 
+
+**Some Highlights:**
+```sh
+$ tcpdump -i eth0
+$ tcpdump -D
+$ tcpdump -c 100
+$ tcpdump -w file.cap
+$ tcpdump -r file.cap
+$ tcpdump -v 
+$ tcpdump -enni eth0 port 8116 
+$ sudo tcpdump -i eth0 -v src port 443 and dst 192.168.3.107
+$ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
+$ sudo tcpdump -nn -A -s1500 -l | grep "User-Agent:"
+$ tcpdump -nni eth0 dst 10.2.1.3 and not port 22  
+$ tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2  
+$ sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
+$ sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
+$ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
+$ sudo tcpdump -nn -v port ftp or ftp-data
+$ sudo tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
+$ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
+```
+
 ---
 
 ### Basic Usage and Syntax
-```
-sudo tcpdump -i eth0
-```
 
- - i = interface  
- - v = verbose  
- - s 0 = size of capture 
- - n = no DNS resolution
- - nn = no DNS/protocol resolution
- - A = print ASCII
+**Common Flags**
+```
+ -i = interface  
+ -v = verbose  (-v, -vv, -vvv)
+ -s 0 = size of capture  (common sizes include 0 (all), 64, 1500, 65535 bytes)
+ -n = no DNS resolution
+ -nn = no DNS/protocol resolution
+ -A = print ASCII
+ -e = show mac addresses
+ -c = number of bytes to capture
+```
 
 **Filter by Port/Protocol**
+Note: `protocol 17` is `udp`. Filtering on either of these will produce the same results.
+The equivalent of the `tcp` filter is `protocol 6`
 ```
 tcpdump -nni eth0 port 8116      // specify port
 tcpdump -nni eth3 ip proto 17    // specify protocol by number
 tcpdump -nni eth3 icmp           // specify protocol by name
+
+tcpdump -i eth0 udp
+tcpdump -i eth0 proto 17
+tcpdump -i eth0 tcp
+tcpdump -i eth0 proto 6
 ```
 
 **Size examples**
@@ -40,55 +75,50 @@ tcpdump -nni eth3 icmp           // specify protocol by name
 
 ---
 
->  It is considered best practice to enclose your capture filters inside single-quotes
->  See the second example in the list highlihts below 
+#### ASCII AND HEX OUTPUT
 
-**Some Highlights:**
-```sh
-$ sudo tcpdump -i eth0 -v src port 443 and dst 192.168.3.107
-$ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
-$ sudo tcpdump -nn -A -s1500 -l | grep "User-Agent:"
-$ sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
-$ sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
-$ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
-$ sudo tcpdump -nn -v port ftp or ftp-data
-$ sudo tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
-$ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
-```
-
----
-`# tcpdump -D` show all available devices  
-`# tcpdump -c 100` capture 100 packets  
-`# tcpdump -w file.cap` write to file  
-`# tcpdump -r file.cap` read to file  
-`# tcpdump -nni [eth0|any]` specify interface (**-i**)   
-`# tcpdump -enni eth0 port 8116` show mac addresses (**-e**)  
-`# tcpdump -v` verbose  
-
----
-
-#### DATA AND HEX OUTPUT
-
-Hex and ASCII output is useful when inspecting payload contents.
+Hex and ASCII output is useful when inspecting payload contents. 
+ASCII is useful for using with grep and other string manipulation commands
 Capture ICMP packets with full hex and ASCII output
+
+**ASCII**
 ```sh
-tcpdump -nni ens160 icmp -XX
+tcpdump -nni ens160 icmp -A -c 1
 ```
 ```
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
-19:32:33.454651 IP 192.168.2.98 > 192.168.70.89: ICMP echo request, id 1, seq 13, length 40
-        0x0000:  000c 2955 c6d7 000c 29df 8b99 0800 4500  ..)U....).....E.
-        0x0010:  003c 1db1 0000 7f01 5404 c0a8 0262 c0a8  .<......T....b..
-        0x0020:  4659 0800 4d4e 0001 000d 6162 6364 6566  FY..MN....abcdef
-        0x0030:  6768 696a 6b6c 6d6e 6f70 7172 7374 7576  ghijklmnopqrstuv
-        0x0040:  7761 6263 6465 6667 6869                 wabcdefghi
-19:32:33.454708 IP 192.168.70.89 > 192.168.2.98: ICMP echo reply, id 1, seq 13, length 40
-        0x0000:  000c 29df 8b99 000c 2955 c6d7 0800 4500  ..).....)U....E.
-        0x0010:  003c ca3b 0000 4001 e679 c0a8 4659 c0a8  .<.;..@..y..FY..
-        0x0020:  0262 0000 554e 0001 000d 6162 6364 6566  .b..UN....abcdef
-        0x0030:  6768 696a 6b6c 6d6e 6f70 7172 7374 7576  ghijklmnopqrstuv
-        0x0040:  7761 6263 6465 6667 6869                 wabcdefghi
+16:37:25.589407 IP 192.168.2.98.53819 > ecorpserver89.ssh: Flags [P.], seq 1536768612:1536768648, ack 3169130755, win 9795, length 36
+E..L..@...@....b..FY.;..[.:d....P.&C3............c...^s......d..vh...z@,.7YS
+16:37:25.591019 IP ecorpserver89.ssh > 192.168.2.98.53819: Flags [P.], seq 1:37, ack 36, win 648, length 36
+E..L..@.@.Y...FY...b...;....[.:.P....J..v.W..\......+.p.^...5..Vp~.v,.%...=m
+2 packets captured
+14 packets received by filter
+0 packets dropped by kernel
+```
+
+```sh
+tcpdump -nni ens160 icmp -XX -c 1
+```
+```
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+16:37:34.587700 IP ecorpserver89.ssh > 192.168.2.98.53819: Flags [P.], seq 3169140439:3169140635, ack 1536777392, win 648, length 196
+        0x0000:  4510 00ec 17b7 4000 4006 5839 c0a8 4659  E.....@.@.X9..FY
+        0x0010:  c0a8 0262 0016 d23b bce5 3ed7 5b99 5cb0  ...b...;..>.[.\.
+        0x0020:  5018 0288 caea 0000 7e16 7442 94fd dabf  P.......~.tB....
+        0x0030:  b5d0 bb97 64a5 a89b d9f2 173d da00 7316  ....d......=..s.
+        0x0040:  2ca8 4c5c b60d 27cb 43a0 8510 cd50 867a  ,.L\..'.C....P.z
+        0x0050:  3d57 c866 22c4 da67 d692 d242 3666 70c3  =W.f"..g...B6fp.
+        0x0060:  2815 ab8d 6d03 33e9 7ee9 e63f 4671 2c4f  (...m.3.~..?Fq,O
+        0x0070:  c5b9 408a 5bf4 9868 c032 727e 83c2 4580  ..@.[..h.2r~..E.
+        0x0080:  ab03 7086 21c2 b7ee d6f7 f513 7e1f 97f0  ..p.!.......~...
+        0x0090:  eeeb dc2d b375 fc6a a74e ab47 b18f d85c  ...-.u.j.N.G...\
+        0x00a0:  069e ca2e 99f7 2399 4d37 0dfa 354b daca  ......#.M7..5K..
+        0x00b0:  f4e9 2d20 23d6 afa0 aaac 66ed 7394 9073  ..-.#.....f.s..s
+        0x00c0:  694b c8bb d48c 8ff5 7c9b 65d8 a609 eea8  iK......|.e.....
+        0x00d0:  d048 6782 6199 7f8e 6f95 6a9f de60 fd08  .Hg.a...o.j..`..
+        0x00e0:  1510 f238 2016 1d65 90db a79c            ...8...e....
 ```
 		
 			
@@ -107,7 +137,7 @@ net 10.0.0.0/8
 tcpdump -i docker0 -v tcp and dst 172.17.0.1
 ```
 
-#### INTERFACE HELP
+#### INTERFACE
 ```
 tcpdump -D
 ```
@@ -118,7 +148,6 @@ tcpdump -D
 4.any  
 5.lo  
 ```
-Use `-i <interface>` to select.
 
 #### SOURCE / DESTINATION EXAMPLES
 ```sh
@@ -579,56 +608,26 @@ tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ---
 ## Unsorted Notes
 
-  
-`# tcpdump -nni eth0 dst 10.2.1.3 and not port 22` AND NOT  
-`# tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2` OR  
-  
-```
-$ sudo tcpdump -nni wlan0 -XX -v
-```
-```
-tcpdump: 
-listening on wlan0, 
-link-type EN10MB (Ethernet), 
-snapshot length 262144 bytes   
-23:30:34.928808 
-IP (tos 0x0, ttl 64, id 6206, offset 0, flags [DF], proto UDP (17), length 144) 192.168.5.18.47088 > 52.4.198.155.1194: UDP, 
-length 116   
-
-0x0000: 26ad f111 34f1 b0a4 60ba 656c 0800 4500 &...4...`.el..E.   
-0x0010: 0090 183e 4000 4011 61c5 c0a8 0512 3404 ...>@.@.a.....4.   
-0x0020: c69b b7f0 04aa 007c ace5 4800 00a6 8a37 .......|..H....7   
-0x0030: dfc3 4ede 48ee 6753 a6ea 0278 9dd2 4ea7 ..N.H.gS...x..N.   
-0x0040: de81 2747 972a 8040 921c 19ba 0098 5a00 ..'G.*.@......Z.   
-0x0050: 082d 4bac 0d8c dbc7 ea73 6981 188a 0ef4 .-K......si.....   
-0x0060: 7d16 d5b4 81f9 2e7b 8389 4bdd c843 51f4 }......{..K..CQ.   
-0x0070: a9a9 e071 5d1c 873f aeb7 e459 87c5 659d ...q]..?...Y..e.   
-0x0080: ecc3 9645 83c3 0460 a53e 44db 54c4 82b9 ...E...`.>D.T...   
-0x0090: efa6 d401 c992 f07b 5c08 c775 6774 .......{\..ugt
-```
----
-
-## First The Basics
-
-### Breaking down the Tcpdump Command Line
-
-The following command uses common parameters often seen when wielding the `tcpdump` scalpel.
-```sh
-$ sudo tcpdump -i eth0 -nn -s0 -v port 80
-```
-
-`-i `: Select interface that the capture is to take place on, this will often be an ethernet card or wireless adapter but could also be a `vlan` or something more unusual. Not always required if there is only one network adapter. 
-
-`-nn` : A single (**n**) will not resolve hostnames. A double (**nn**) will not resolve hostnames or ports. This is handy for not only viewing the IP / port numbers but also when capturing a large amount of data, as the **name resolution will slow down the capture**. 
-
-`-s0` : Snap length, is the size of the packet to capture. `-s0` will set the size to unlimited - use this if you want to capture all the traffic. Needed if you want to pull binaries / files from network traffic.  
-
-`-v` : Verbose, using (**-v**) or (**-vv**) increases the amount of detail shown in the output, often showing more protocol specific information.  
-
-`port 80` : this is a common port filter to capture only traffic on **port 80**, that is of course usually HTTP.
 
 ---
 
@@ -642,13 +641,7 @@ $ sudo tcpdump -X -s0 port 80      // both ascii and hex
 
 ### Capture on Protocol
 
-Filter on UDP traffic. Another way to specify this is to use **protocol 17** that is `udp`. These two commands will produce the same result. The equivalent of the `tcp` filter is **protocol 6**.
-```sh
-$ sudo tcpdump -i eth0 udp
-$ sudo tcpdump -i eth0 proto 17
-$ sudo tcpdump -i eth0 tcp
-$ sudo tcpdump -i eth0 proto 6
-```
+
 ---
 
 ### Capture Hosts based on IP address (host, src, dst)
