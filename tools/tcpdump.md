@@ -18,10 +18,55 @@ sudo tcpdump -i eth0
 
  - i = interface  
  - v = verbose  
- - s0 = capture full packet  
- - n = no DNS resolution  
+ - s 0 = size of capture 
+ - n = no DNS resolution
+ - nn = no DNS/protocol resolution
  - A = print ASCII
- - 
+
+**Filter by Port/Protocol**
+```
+tcpdump -nni eth0 port 8116      // specify port
+tcpdump -nni eth3 ip proto 17    // specify protocol by number
+tcpdump -nni eth3 icmp           // specify protocol by name
+tcpdump -nni eth3 esp            // esp packets
+```
+
+**Size examples**
+```
+-s 0		//Captures the entire packet (full frame), best when saving to a file for later analysis in Wireshark.
+-s 64		//Captures only the first 64 bytes of each frame. (when only IP and protocol headers arequired.
+-s 1500		//Captures up to 1500 bytes per packet, a common MTU of standard Ethernet frames.
+-s 65535	//A very large number (e.g., 65535 or 65536) used to ensure the capture of full-sized packets -s 0.
+```
+
+---
+
+>  It is considered best practice to enclose your capture filters inside single-quotes
+>  See the second example in the list highlihts below 
+
+**Some Highlights:**
+```sh
+$ sudo tcpdump -i eth0 -v src port 443 and dst 192.168.3.107
+$ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
+$ sudo tcpdump -nn -A -s1500 -l | grep "User-Agent:"
+$ sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
+$ sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
+$ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
+$ sudo tcpdump -nn -v port ftp or ftp-data
+$ sudo tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
+$ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
+```
+
+---
+`# tcpdump -D` show all available devices  
+`# tcpdump -c 100` capture 100 packets  
+`# tcpdump -w file.cap` write to file  
+`# tcpdump -r file.cap` read to file  
+`# tcpdump -nni [eth0|any]` specify interface (**-i**)   
+`# tcpdump -enni eth0 port 8116` show mac addresses (**-e**)  
+`# tcpdump -v` verbose  
+
+---
 
 #### DATA AND HEX OUTPUT
 
@@ -536,41 +581,7 @@ tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 
 
 ---
-## TCPDump
-
-Tip: _Dont grep tcpdump. CPU killer_  
-
->  It is considered best practice to enclose your capture filters inside single-quotes
->  See the second example in the list highlihts below 
-
-**Some Highlights:**
-```sh
-$ sudo tcpdump -i eth0 -v src port 443 and dst 192.168.3.107
-$ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
-$ sudo tcpdump -nn -A -s1500 -l | grep "User-Agent:"
-$ sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
-$ sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
-$ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
-$ sudo tcpdump -nn -v port ftp or ftp-data
-$ sudo tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
-$ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
-```
-
----
-`# tcpdump -D` show all available devices  
-`# tcpdump -c 100` capture 100 packets  
-`# tcpdump -w file.cap` write to file  
-`# tcpdump -r file.cap` read to file  
-`# tcpdump -nni [eth0|any]` specify interface (**-i**)   
-`# tcpdump -enni eth0 port 8116` show mac addresses (**-e**)  
-`# tcpdump -v` verbose  
-
-**Protocols**  
-proto 1 = ICMP  
-proto 6 = TCP  
-proto 17 = UDP  
-proto 50 = ESP  
-proto 51 = AH
+## Unsorted Notes
 
 ```
 tcpdump -nni eth0 port 8116      // specify port
@@ -578,13 +589,6 @@ tcpdump -nni eth3 ip proto 17    // specify protocol by number
 tcpdump -nni eth3 icmp           // specify protocol by name
 tcpdump -nni eth3 esp            // esp packets
 ```
-
-**Data and Hex**  
-`tcpdump -nni eth1 icmp -XX`  Hex and ASCII data
-`tcpdup -nni eth0 esp -XX`    ESP enrcrypted`
-
-**Conditionals**  
-_dst, src, host(dst and host), port_  
   
 `# tcpdump -nni eth0 dst 10.2.1.3 and not port 22` AND NOT  
 `# tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2` OR  
