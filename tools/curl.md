@@ -4,6 +4,8 @@ A practical, lab-friendly reference for using curl to inspect HTTP traffic, test
 
 ToDo: Map payloads to specific API endpoints and attack types
 
+[HTTP Methods CRUD](#2-http-methods-crud)
+
 ### Using Payload Files for cURL Requests
 
 When sending JSON or large payloads with cURL, it’s safer and more maintainable to use an external file rather than inline JSON. This avoids shell quoting issues, makes commands easier to read, and allows reuse for multiple tests.
