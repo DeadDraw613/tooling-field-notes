@@ -28,7 +28,6 @@ sudo tcpdump -i eth0
 tcpdump -nni eth0 port 8116      // specify port
 tcpdump -nni eth3 ip proto 17    // specify protocol by number
 tcpdump -nni eth3 icmp           // specify protocol by name
-tcpdump -nni eth3 esp            // esp packets
 ```
 
 **Size examples**
@@ -583,12 +582,6 @@ tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 ---
 ## Unsorted Notes
 
-```
-tcpdump -nni eth0 port 8116      // specify port
-tcpdump -nni eth3 ip proto 17    // specify protocol by number
-tcpdump -nni eth3 icmp           // specify protocol by name
-tcpdump -nni eth3 esp            // esp packets
-```
   
 `# tcpdump -nni eth0 dst 10.2.1.3 and not port 22` AND NOT  
 `# tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2` OR  
