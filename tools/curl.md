@@ -230,11 +230,9 @@ curl --retry 3 --retry-delay 2 http://example.com
 
 --------------------------------------------------
 
-### TBFT – To Be Further Tested
+## TBFO – To Be Further Organized
 
-Commands that require additional lab configuration to verify output.
-
-===
+Random stuff from old notes still to be organized, deleted
 
 ### cURL examples
 
