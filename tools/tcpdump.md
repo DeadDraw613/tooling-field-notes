@@ -33,6 +33,7 @@ $ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
 $ sudo tcpdump -nn -v port ftp or ftp-data
 $ sudo tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
 $ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
+$ tcpdump 'icmp[icmptype] != icmp-echo and icmp[icmptype] != icmp-echoreply'
 ```
 
 ---
@@ -50,6 +51,7 @@ $ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
  -e = show mac addresses
  -c = number of bytes to capture
  -l = line buffered mode
+ -G = group a new file every nth seconds
 ```
 
 **Filter by Port/Protocol**
@@ -192,7 +194,7 @@ tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2
 
 ### Line Buffered Mode
 
-Without the option to force line (`-l`) buffered (or packet buffered `-C`) mode you will not always get the **expected response when piping** the `tcpdump` output to another command such as `grep`. By using this option the output is sent immediately to the piped command giving an immediate response when troubleshooting.
+Without the option to force line (`-l`) buffered (or packet buffered `-C`) mode you will not always get the **expected response when piping** the `tcpdump` output to another command such as `grep`, `egrep`, `cut` or `awk`. By using this option the output is sent immediately to the piped command giving an immediate response when troubleshooting.
 ```sh
 $ sudo tcpdump -i eth0 -s0 -l port 80 | grep 'Server:'
 ```
@@ -202,6 +204,24 @@ $ sudo tcpdump -i eth0 -s0 -l port 80 | grep 'Server:'
 ### Capture only HTTP GET and POST packets
 
 #### GET
+
+**Get** with grep
+```sh
+sudo tcpdump -nn port 80 | grep "GET /"
+```
+```
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+17:16:09.905109 IP 192.168.2.98.55866 > 192.168.70.89.80: Flags [P.], seq 1:1112, ack 1, win 513, length 1111: HTTP: GET /profile HTTP/1.1
+17:16:10.086497 IP 192.168.2.98.55866 > 192.168.70.89.80: Flags [P.], seq 1112:2152, ack 9912, win 513, length 1040: HTTP: GET /web/connections HTTP/1.1
+17:16:20.302465 IP 192.168.2.98.55881 > 192.168.70.89.80: Flags [P.], seq 1:344, ack 1, win 513, length 343: HTTP: GET / HTTP/1.1
+17:16:20.431881 IP 192.168.2.98.55881 > 192.168.70.89.80: Flags [P.], seq 344:1393, ack 9357, win 510, length 1049: HTTP: GET /build/assets/app-DgOFV6Oj.css HTTP/1.1
+17:16:28.533048 IP 192.168.2.98.55888 > 192.168.70.89.80: Flags [P.], seq 1:1104, ack 1, win 513, length 1103: HTTP: GET /login HTTP/1.1
+17:16:35.910865 IP 192.168.2.98.55893 > 192.168.70.89.80: Flags [P.], seq 1296:2408, ack 1569, win 4106, length 1112: HTTP: GET /dashboard HTTP/1.1
+17:16:36.264924 IP 192.168.2.98.55893 > 192.168.70.89.80: Flags [P.], seq 2408:3441, ack 9326, win 4106, length 1033: HTTP: GET /fake-dashboard.json HTTP/1.1
+```
+
+**Get** with tcpdump filter
 ```sh
 sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
 ```
@@ -578,7 +598,6 @@ sudo tcpdump dst port 123
 
 #### Capture SNMP Query and Response
 ```sh
-onesixtyone 10.10.1.10 public  
 sudo tcpdump -n -s0 port 161 and udp
 ```
 
@@ -633,290 +652,20 @@ tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 ---
 ## Unsorted Notes
 
-
-
-
-
----
-
-### Combine Filters
-
-Throughout these examples you can use standard logic to combine different filters.
-
-**and** or **&&**
-**or** or **||**
-**not** or **!**
-
----
-
-### Random Snippets from CheckPoint
-
-```sh
-tcpdump -D                     //available devices
-tcpdump -c 100                 //capture 100 packets
-tcpdump -w filename.cap
-tcpdump -nnr filename.cap      //read the file, will apply the nn to playback
-tcpdump -nni [eth0|any]  
-tcpdump -nni eth3 port 8116    //capture CCP packets (UDP 17) on sync interface
-tcpdump -nni eth3 ip proto 17  //capture UDP 17 (CCP) on sync interface
-
-tcpdump -nni eth1 icmp               //grab icmp
-tcpdump -nni eth0 ip proto 50        //grab ESP packets
-tcpdump -vv | grep ‘proto: ESP (50)’ //requires vv for grep match 
-                                     // ‘ESP(spi’ doesn’t require -vv
-
-tcpdump -nni eth1 dst 10.2.10.223 and not port 22
-dst - destination
-src - source
-host - either direction
-
-tcpdump -nni eth1 host 10.2.10.223 and not port 22 and not dst 10.2.10.223
-tcpdump -nni eth1 src 10.2.10.223 or src 10.1.10.223
-
-tcpdump -nni eth1 icmp -XX           //hex and ascii content
-tcpdump -nni eth1 ip proto 50 -XX    //seems to be same output as X? 
-
-ROUTE
-route -n //kernel routing table
-route -Cn //kernel routing cache
-
-fw getifs
-```
----
-
-## Practical Capture Filters Examples
-
-In many of these examples there are a number of ways that the result could be achieved. As seen in some of the examples it is possible to focus the capture right down to individual bits in the packet.
-
-The method you will use will depend on your desired output and how much traffic is on the wire. Capturing on a busy gigabit link may force you to use specific low level packet filters.
-
-When troubleshooting you often simply want to get a result. Filtering on the port and selecting **ascii** output in combination with `grep`, `cut` or `awk` will often get that result. You can always go deeper into the packet if required.
-
-For example when capturing HTTP requests and responses you could filter out all packets except the data by removing **SYN /ACK / FIN** however if you are using `grep` the noise will be filtered anyway. Keep it simple.
-
-This can be seen in the following examples, where the aim is to get a result in the simplest (and therefore fastest) manner.
-
-### 1. Extract HTTP User Agents
-
-Extract HTTP User Agent from HTTP request header.
-```sh
-$ sudo tcpdump -nn -A -s1500 -l | grep "User-Agent:"
-```
-
-By using `egrep` and multiple matches we can get the User Agent and the Host (or any other header) from the request.
-```sh
-$ sudo tcpdump -nn -A -s1500 -l | egrep -i 'User-Agent:|Host:'
-```
-
-```sh
-$ sudo tcpdump -i docker0 -nn -A -s1500 -l | grep "User-Agent:"
-
-tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
-listening on docker0, link-type EN10MB (Ethernet), snapshot length 1500 bytes
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0
-```
----
-### 2. Capture only HTTP GET and POST packets
-
-Going deep on the filter we can specify only packets that match GET.
-The hexadecimal being matched in these expressions matches the ascii for GET and POST.
-
-```d
-$ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
-```
-Alternatively we can select only on POST requests. Note that the POST data may not be included in the packet captured with this filter. It is likely that a POST request will be split across multiple TCP data packets.
-```d
-$ sudo tcpdump -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x504f5354'
-```
-
-As an explanation `'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x504f5354'` first determine the size of the offset, and then selects the 4 bytes we wish to match against. See [[TCP Filter Breakdown]] for full breakdown of this command - very cool 💩
-
-```
-# sudo tcpdump -i docker0 -s 0 -A -vv 'tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x47455420'
-
-tcpdump: listening on docker0, link-type EN10MB (Ethernet), snapshot length 262144 bytes 16:20:47.308109 IP (tos 0x0, ttl 64, id 55880, offset 0, flags [DF], proto TCP (6), length 610)
-
-172.17.0.1.54126 > 172.17.0.2.http: Flags [P.], cksum 0x5a7a (incorrect -> 0x9fd7), seq 708741811:708742369, ack 610411666, win 502, options [nop,nop,TS val 34580271 ecr 1601544035], length 558: HTTP, length: 558
-        GET /vulnerabilities/exec/ HTTP/1.1
-        Host: localhost
-        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0
-        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-        Accept-Language: en-US,en;q=0.5
-        Accept-Encoding: gzip, deflate, br, zstd
-        Referer: http://localhost/index.php
-        Connection: keep-alive
-        Cookie: PHPSESSID=s59443q0q799oejfccdtg02mq7; security=low
-        Upgrade-Insecure-Requests: 1
-        Sec-Fetch-Dest: document
-        Sec-Fetch-Mode: navigate
-        Sec-Fetch-Site: same-origin
-        Sec-Fetch-User: ?1
-        Priority: u=0, i
-
-E..b.H@.@..(.........n.P*>..$b$.....Zz.....
-.../_u.cGET /vulnerabilities/exec/ HTTP/1.1
-Host: localhost
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate, br, zstd
-Referer: http://localhost/index.php
-Connection: keep-alive
-Cookie: PHPSESSID=s59443q0q799oejfccdtg02mq7; security=low
-Upgrade-Insecure-Requests: 1
-Sec-Fetch-Dest: document
-Sec-Fetch-Mode: navigate
-Sec-Fetch-Site: same-origin
-Sec-Fetch-User: ?1
-Priority: u=0, i
-
-1 packet captured
-1 packet received by filter
-0 packets dropped by kernel
-
-```
-
-### 3. Extract HTTP Request URL's
-
-Parse **Host** and **HTTP Request location** from traffic. By not targeting **port 80** we may find these requests on any port such as HTTP services running on high ports.
-```d
-$ sudo tcpdump -s 0 -v -n -l | egrep -i "POST /|GET /|Host:"
-```
-```
-tcpdump: listening on enp7s0, link-type EN10MB (Ethernet), capture size 262144 bytes
-	POST /wp-login.php HTTP/1.1
-	Host: dev.example.com
-	GET /wp-login.php HTTP/1.1
-	Host: dev.example.com
-	GET /favicon.ico HTTP/1.1
-	Host: dev.example.com
-	GET / HTTP/1.1
-	Host: dev.example.com
-```
----
-
-### 4. Extract HTTP Passwords in POST Requests
-
-Lets get some passwords from the POST data. Will include Host: and request location so we know what the password is used for.
-```d
-$ sudo tcpdump -s 0 -A -n -l | egrep -i "POST /|pwd=|passwd=|password=|Host:"
-```
-```
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on enp7s0, link-type EN10MB (Ethernet), capture size 262144 bytes
-11:25:54.799014 IP 10.10.1.30.39224 > 10.10.1.125.80: Flags [P.], seq 1458768667:1458770008, ack 2440130792, win 704, options [nop,nop,TS val 461552632 ecr 208900561], length 1341: 
-HTTP: POST /wp-login.php HTTP/1.1
-.....s..POST /wp-login.php HTTP/1.1
-Host: dev.example.com
-.....s..log=admin&pwd=notmypassword&wp-submit=Log+In&redirect_to=http%3A%2F%2Fdev.example.com%2Fwp-admin%2F&testcookie=1
-```
----
-### 5. Capture Cookies from Server and from Client
-
-MMMmmm Cookies! Capture cookies from the server by searching on Set-Cookie: (from Server) and Cookie: (from Client).
-```d
-$ sudo tcpdump -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
-```
-```
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on wlp58s0, link-type EN10MB (Ethernet), capture size 262144 bytes
-Host: dev.example.com
-Cookie: wordpress_86be02xxxxxxxxxxxxxxxxxxxc43=admin%7C152xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxfb3e15c744fdd6; _ga=GA1.2.21343434343421934; _gid=GA1.2.927343434349426; wordpress_test_cookie=WP+Cookie+check; wordpress_logged_in_86be654654645645645654645653fc43=admin%7C15275102testtesttesttestab7a61e; wp-settings-time-1=1527337439
-```
-
-Logging out/in of DVWA 
-```
-$ sudo tcpdump -i docker0 -nn -A -s0 -l | egrep -i 'Set-Cookie|Host:|Cookie:'
-
-tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
-listening on docker0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
-Host: localhost
-Cookie: PHPSESSID=s59443q0q799oejfccdtg02mq7; security=low
-Host: localhost
-Cookie: PHPSESSID=s59443q0q799oejfccdtg02mq7; security=low
-Host: localhost
-Cookie: PHPSESSID=s59443q0q799oejfccdtg02mq7; security=low
-Host: localhost
-Cookie: PHPSESSID=s59443q0q799oejfccdtg02mq7; security=low
-```
----
-### 6. Capture all ICMP packets
-
-See all `ICMP` packets on the wire.
-```d
-$ sudo tcpdump -n icmp
-```
-```
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on enp7s0, link-type EN10MB (Ethernet), capture size 262144 bytes
-11:34:21.590380 IP 10.10.1.217 > 10.10.1.30: ICMP echo request, id 27948, seq 1, length 64
-11:34:21.590434 IP 10.10.1.30 > 10.10.1.217: ICMP echo reply, id 27948, seq 1, length 64
-11:34:27.680307 IP 10.10.1.159 > 10.10.1.1: ICMP 10.10.1.189 udp port 59619 unreachable, length 115
-```
----
-
-### 7. Show ICMP Packets that are not ECHO/REPLY (standard ping)
-
-Filter on the `icmp` type to select on `icmp` packets that are not standard `ping` packets.
-```d
-$ sudo tcpdump 'icmp[icmptype] != icmp-echo and icmp[icmptype] != icmp-echoreply'
-```
-```
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on enp7s0, link-type EN10MB (Ethernet), capture size 262144 bytes
-11:37:04.041037 IP 10.10.1.189 > 10.10.1.20: ICMP 10.10.1.189 udp port 36078 unreachable, length 156
-```
----
-
-### 8. Capture SMTP / POP3 Email
-
-It is possible to extract email body and other data, in this example we are only parsing the email recipients.
-```d
-$ sudo tcpdump -nn -l port 25 | grep -i 'MAIL FROM\|RCPT TO'
-```
----
-
-### 9. Troubleshooting NTP Query and Response
-
-In this example we see the NTP query and response.
-```d
-$ sudo tcpdump dst port 123
-```
-```
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
-21:02:19.112502 IP test33.ntp > 199.30.140.74.ntp: NTPv4, Client, length 48
-21:02:19.113888 IP 216.239.35.0.ntp > test33.ntp: NTPv4, Server, length 48
-21:02:20.150347 IP test33.ntp > 216.239.35.0.ntp: NTPv4, Client, length 48
-21:02:20.150991 IP 216.239.35.0.ntp > test33.ntp: NTPv4, Server, length 48
-```
----
-### 10. Capture SNMP Query and Response
-
-Using `onesixtyone` the fast SNMP protocol scanner we test an SNMP service on our local network and capture the `GetRequest` and `GetResponse`. For anyone who has had the (dis)pleasure of troubleshooting SNMP, this is a great way to see exactly what is happening on the wire. You can see the `OID` clearly in the traffic, very helpful when wrestling with `MIBS`.
-
-```d
-$ onesixtyone 10.10.1.10 public
-```
-```
-Scanning 1 hosts, 1 communities
-10.10.1.10 [public] Linux test33 4.15.0-20-generic #21-Ubuntu SMP Tue Apr 24 06:16:15 UTC 2018 x86_64
-```
-```d
-$ sudo tcpdump -n -s0  port 161 and udp
-```
-```
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on wlp58s0, link-type EN10MB (Ethernet), capture size 262144 bytes
-23:39:13.725522 IP 10.10.1.159.36826 > 10.10.1.20.161:  GetRequest(28)  .1.3.6.1.2.1.1.1.0
-23:39:13.728789 IP 10.10.1.20.161 > 10.10.1.159.36826:  GetResponse(109)  .1.3.6.1.2.1.1.1.0="Linux testmachine 4.15.0-20-generic #21-Ubuntu SMP Tue Apr 24 06:16:15 UTC 2018 x86_64"
-```
----
 
 ### 11. Capture FTP Credentials and Commands
 
