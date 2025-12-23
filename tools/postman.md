@@ -1,5 +1,5 @@
 ## Postman Field Guide
-## Subgroup 1
+## Random Testing
 #### Parse Returned JSON
 Example response
 ```json
