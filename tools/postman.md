@@ -1,5 +1,53 @@
 ## Postman Field Guide
+
+### Common Chai BDD Functions Supported in Postman 
+
+You can use these assertions after `pm.expect(value).to.be...` or `pm.expect(value).to.have...`: 
+
+**Core Functions**
+
+- `.equal(value)`: Asserts that the target is strictly (`===`) equal to the given value.
+- `.eql(value)`: Asserts that the target is deeply equal to the given object or array.
+- `.a(type)`/`.an(type)`: Asserts that the target is of a specific JavaScript type (e.g., `'string'`, `'number'`, `'boolean'`, `'object'`, `'array'`).
+- `.include(value)`/`.contain(value)`: Asserts that the target includes a specified substring (for strings) or member (for arrays).
+- `.match(regex)`: Asserts that a string matches a given regular expression. 
+
+**Value Checks**
+
+- `.ok`: Asserts that the target is truthy.
+- `.true`: Asserts that the target is `true`.
+- `.false`: Asserts that the target is `false`.
+- `.null`: Asserts that the target is `null`.
+- `.undefined`: Asserts that the target is `undefined`.
+- `.exist`: Asserts that the target is not `null` or `undefined`. 
+
+**Numerical Comparisons**
+
+- `.above(value)`/`.gt(value)`: Asserts that the target number is greater than the given value.
+- `.least(value)`/`.gte(value)`: Asserts that the target number is greater than or equal to the given value.
+- `.below(value)`/`.lt(value)`: Asserts that the target number is less than the given value.
+- `.most(value)`/`.lte(value)`: Asserts that the target number is less than or equal to the given value.
+- `.within(start, finish)`: Asserts that the target number is within the specified range. 
+
+**Object & Array Property Checks**
+
+- `.property(name, [value])`: Asserts that the target has a property with the given name and optionally checks its value.
+- `.ownProperty(name)`: Asserts that the target has an _own_ property (not inherited) with the given name.
+- `.lengthOf(value)`: Asserts that the target has a property named `length` with the expected value.
+- `.keys(key1, key2, ...)`: Asserts that the target object has the specified keys. Can be combined with `.all` or `.any`.
+- `.instanceof(constructor)`: Asserts that the target is an instance of a specific constructor. 
+
+**Modifiers and Chainers**
+
+- `.not`: Negates the assertion that follows it (e.g., `pm.expect(...).to.not.equal(...)`).
+- `.deep`: Modifies subsequent assertions to use deep equality (e.g., `pm.expect(...).to.deep.equal(...)`).
+- `.any`: Requires that at least one of the subsequent `.keys` assertions must pass.
+- `.all`: Requires that all of the subsequent `.keys` assertions must pass. 
+
+
+---
 ## Random Testing
+
 #### Parse Returned JSON
 Example response
 ```json
