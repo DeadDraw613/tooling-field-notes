@@ -368,7 +368,87 @@ sleep(1500); // 1.5 seconds
 console.log("Paused for 1500ms");
 ```
 ---
-8
+
+## Newman
+
+Notes to be added
+
+Sample run output from lab:
+```sh
+Chatter - Dude - Login, message, logout
+
+→ Login as Dude
+  POST http://192.168.70.89/api/login [200 OK, 541B, 369ms]
+  ┌
+  │ 'Parsed JSON: ', {
+  │   token: '132|82i2InrqndpDrWRPEXDxTihPYb36DmYIfWfcgwff53e96a0c'
+  │ ,
+  │   user: {
+  │     id: 5,
+  │     name: 'Dude',
+  │     email: 'dude@dude.com',
+  │     email_verified_at: null,
+  │     created_at: '2025-11-08T03:32:52.000000Z',
+  │     updated_at: '2025-11-26T16:24:29.000000Z',
+  │     profile_picture: 'user-5-1764174269.png'
+  │   }
+  │ }
+  │ 'captured UserID: ', 5
+  │ 'captured Token: ', '132|82i2InrqndpDrWRPEXDxTihPYb36
+  │ DmYIfWfcgwff53e96a0c'
+  └
+  √  Token exists
+  ┌
+  │ 'Chatter_bearertoken at end of Login script: ', '132|
+  │ 82i2InrqndpDrWRPEXDxTihPYb36DmYIfWfcgwff53e96a0c'
+  └
+
+→ Send Message to user 6 (Doug)
+  ┌
+  │ 'Chatter_bearertoken at start of SendMessageRequest: ',
+  │ 90m'132|82i2InrqndpDrWRPEXDxTihPYb36DmYIfWfcgwff53e96a0c'
+  └
+  POST http://192.168.70.89/api/messages [201 Created, 526B, 30ms]
+  ┌
+  │ 'Parsed JSON: ', {
+  │   sender_id: 5,
+  │   receiver_id: 6,
+  │   message: "This isn't Vietnam, this is Postman.</br>There are
+  │ rules!</br> - Postman",
+  │   image_path: null,
+  │   updated_at: '2025-12-09T15:18:13.000000Z',
+  │   created_at: '2025-12-09T15:18:13.000000Z',
+  │   id: 543
+  │ }
+  │ 'New Message ID: ', 543
+  └
+
+→ Read New Message
+  GET http://192.168.70.89/api/messages/6 [200 OK, 4.56kB, 31ms]
+  √  Found item with id: ${targetID}
+  √  Message is a string
+  √  Message content is correct
+
+┌─────────────────────────┬────────────────────┬────────────────────┐
+│                         │           executed │             failed │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│              iterations │                  1 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│                requests │                  3 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│            test-scripts │                  6 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│      prerequest-scripts │                  4 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│              assertions │                  4 │                  0 │
+├─────────────────────────┴────────────────────┴────────────────────┤
+│ total run duration: 846ms                                         │
+├───────────────────────────────────────────────────────────────────┤
+│ total data received: 4.77kB (approx)                              │
+├───────────────────────────────────────────────────────────────────┤
+│ average response time: 143ms [min: 30ms, max: 369ms, s.d.: 159ms] │
+└───────────────────────────────────────────────────────────────────┘
+```
 
 
 
