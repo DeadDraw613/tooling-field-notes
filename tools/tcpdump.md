@@ -1,7 +1,7 @@
 ## TCPDUMP Field Guide
 
 - [Basic Usage and Syntax](#1-basic-usage-and-syntax)
-- [Capture HTTP GET and POST packets](#2-capture-only-http-get-and-post-packets)
+- [Capture HTTP GET and POST packets](#capture-only-http-get-and-post-packets)
 - [Extract HTTP Request URLs](#extract-http-request-urls)
 - [Extract HTTP Passwords in POST Requests](#extract-http-passwords-in-post-requests)
 - [Capture Cookies from Server and Client](#capture-cookies-from-server-and-client)
