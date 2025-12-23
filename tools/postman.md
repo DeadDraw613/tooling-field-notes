@@ -171,7 +171,8 @@ let data = {
 
 pm.environment.set("exportData", JSON.stringify(data));
 ```
-**Run with Newman:**
+**Run with Newman:** see [Newman](#newman)
+
 ```sh
 # newman run collection.json --reporters cli,json \
   --reporter-json-export output.json
