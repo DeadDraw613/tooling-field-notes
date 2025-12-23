@@ -1,6 +1,14 @@
 ## Postman Field Guide
 
-### Common Chai BDD Functions Supported in Postman 
+### Common Chai BDD Functions and Assertions Supported in Postman 
+
+- `pm.response.text()`: Retrieves the entire response body as a string.
+- `pm.response.json()`: Parses the response body as a JSON object.
+- `pm.test()`: Defines a test case in Postman.
+- `pm.expect()`: Used for assertions within tests.
+- `.to.include()`: Asserts that a string contains a specified substring.
+- `.to.match()`: Asserts that a string matches a given regular expression.
+- `.some()`: A JavaScript array method that tests whether at least one element in the array passes the test implemented by the provided function. 
 
 You can use these assertions after `pm.expect(value).to.be...` or `pm.expect(value).to.have...`: 
 
