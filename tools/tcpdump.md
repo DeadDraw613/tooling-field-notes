@@ -218,7 +218,6 @@ listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 17:16:20.431881 IP 192.168.2.98.55881 > 192.168.70.89.80: Flags [P.], seq 344:1393, ack 9357, win 510, length 1049: HTTP: GET /build/assets/app-DgOFV6Oj.css HTTP/1.1
 17:16:28.533048 IP 192.168.2.98.55888 > 192.168.70.89.80: Flags [P.], seq 1:1104, ack 1, win 513, length 1103: HTTP: GET /login HTTP/1.1
 17:16:35.910865 IP 192.168.2.98.55893 > 192.168.70.89.80: Flags [P.], seq 1296:2408, ack 1569, win 4106, length 1112: HTTP: GET /dashboard HTTP/1.1
-17:16:36.264924 IP 192.168.2.98.55893 > 192.168.70.89.80: Flags [P.], seq 2408:3441, ack 9326, win 4106, length 1033: HTTP: GET /fake-dashboard.json HTTP/1.1
 ```
 
 **Get** with tcpdump filter
@@ -291,6 +290,37 @@ Priority: u=0
 {"receiver_id":5,"message":"Hi Dude, this is Doug"}
 ```
 Explanation: selects 4 bytes at the TCP header offset and matches ASCII for `GET` or `POST`.
+
+
+
+### Capture HTTP data packets
+
+Only capture on HTTP data packets on port 80. 
+Avoid capturing the TCP session setup (SYN / FIN / ACK).
+```d
+tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
+
+//much more detail including all responses when increasing verbosity
+tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)' -v
+tcpdump 'tcp port 80 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)' -vv
+```
+```
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on ens160, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+17:22:10.192002 IP 192.168.2.98.56027 > ecorpserver89.http: Flags [P.], seq 1324702672:1324703783, ack 519174884, win 513, length 1111: HTTP: GET /chat HTTP/1.1
+17:22:10.225910 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 1:2921, ack 1111, win 512, length 2920: HTTP: HTTP/1.1 200 OK
+17:22:10.225986 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 2921:5841, ack 1111, win 512, length 2920: HTTP
+17:22:10.226015 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 5841:7667, ack 1111, win 512, length 1826: HTTP
+17:22:10.227079 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 7667:7687, ack 1111, win 512, length 20: HTTP
+17:22:10.289968 IP 192.168.2.98.56027 > ecorpserver89.http: Flags [P.], seq 1111:2193, ack 7687, win 513, length 1082: HTTP: GET /chat HTTP/1.1
+17:22:10.311530 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 7687:12067, ack 2193, win 512, length 4380: HTTP: HTTP/1.1 200 OK
+17:22:10.311549 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 12067:15352, ack 2193, win 512, length 3285: HTTP
+17:22:10.312308 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 15352:15372, ack 2193, win 512, length 20: HTTP
+17:22:10.347614 IP 192.168.2.98.56027 > ecorpserver89.http: Flags [P.], seq 2193:3273, ack 15372, win 513, length 1080: HTTP: GET /api/connections HTTP/1.1
+17:22:10.371115 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 15372:19621, ack 3273, win 512, length 4249: HTTP: HTTP/1.1 200 OK
+17:22:10.371690 IP ecorpserver89.http > 192.168.2.98.56027: Flags [P.], seq 19621:19626, ack 3273, win 512, length 5: HTTP
+```
+
 
 ---
 
@@ -666,106 +696,6 @@ tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 ---
 ## Unsorted Notes
 
-
-### 11. Capture FTP Credentials and Commands
-
-Capturing FTP commands and login details is straight forward. After the authentication is established an FTP session can be **active** or **passive** this will determine whether the data part of the session is conducted over TCP port 20 or another ephemeral port. With the following command you will see USER and PASS in the output (which could be fed to grep) as well as the FTP commands such as LIST, CWD and PASSIVE.
-
-```d
-$ sudo tcpdump -nn -v port ftp or ftp-data
-```
----
-### 12. Rotate Capture Files
-
-When capturing large amounts of traffic or over a long period of time it can be helpful to automatically create new files of a fixed size. This is done using the parameters 
-	`-W    // write to file
-	`-G    // Group a new file every n seconds`       
-	`-C    // No idea TBFT`
-
-In this command the file **capture-(hour).pcap** will be created every (-G) **3600 seconds** (1 hour). The files will be overwritten the following day. So you should end up with 
-**capture-{1-24}.pcap**, if the hour was **15** the new file is (**/tmp/capture-15.pcap**).
-```d
-$ tcpdump  -w /tmp/capture-%H.pcap -G 3600 -C 200
-```
----
-### 13. Capture IPv6 Traffic
-
-Capture IPv6 traffic using the `ip6` filter. In these examples we have specified the TCP and UDP protocols using `proto 6` and `proto 17`.
-```d
-# tcpdump -nn ip6 proto 6
-```
-IPv6 with UDP and reading from a previously saved capture file.
-```d
-# tcpdump -nr ipv6-test.pcap ip6 proto 17
-```
----
-### 14. Detect Port Scan in Network Traffic
-
-In the following example you can see the traffic coming from a single source to a single destination. The Flags `[S]` and `[R.]` can be seen and matched against a seemingly random series of destination ports. These ports are seen in the RESET that is sent when the SYN finds a closed port on the destination system. This is standard behaviour for a port scan by a tool such as Nmap.
-```d
-$ tcpdump -nn
-```
-```
-21:46:19.693601 IP 10.10.1.10.60460 > 10.10.1.199.5432: Flags [S], seq 116466344, win 29200, options [mss 1460,sackOK,TS val 3547090332 ecr 0,nop,wscale 7], length 0
-21:46:19.693626 IP 10.10.1.10.35470 > 10.10.1.199.513: Flags [S], seq 3400074709, win 29200, options [mss 1460,sackOK,TS val 3547090332 ecr 0,nop,wscale 7], length 0
-21:46:19.693762 IP 10.10.1.10.44244 > 10.10.1.199.389: Flags [S], seq 2214070267, win 29200, options [mss 1460,sackOK,TS val 3547090333 ecr 0,nop,wscale 7], length 0
-21:46:19.693772 IP 10.10.1.199.389 > 10.10.1.10.44244: Flags [R.], seq 0, ack 2214070268, win 0, length 0
-21:46:19.693783 IP 10.10.1.10.35172 > 10.10.1.199.1433: Flags [S], seq 2358257571, win 29200, options [mss 1460,sackOK,TS val 3547090333 ecr 0,nop,wscale 7], length 0
-21:46:19.693826 IP 10.10.1.10.33022 > 10.10.1.199.49153: Flags [S], seq 2406028551, win 29200, options [mss 1460,sackOK,TS val 3547090333 ecr 0,nop,wscale 7], length 0
-21:46:19.695567 IP 10.10.1.10.55130 > 10.10.1.199.49154: Flags [S], seq 3230403372, win 29200, options [mss 1460,sackOK,TS val 3547090334 ecr 0,nop,wscale 7], length 0
-21:46:19.695590 IP 10.10.1.199.49154 > 10.10.1.10.55130: Flags [R.], seq 0, ack 3230403373, win 0, length 0
-21:46:19.695608 IP 10.10.1.10.33460 > 10.10.1.199.49152: Flags [S], seq 3289070068, win 29200, options [mss 1460,sackOK,TS val 3547090335 ecr 0,nop,wscale 7], length 0
-21:46:19.695622 IP 10.10.1.199.49152 > 10.10.1.10.33460: Flags [R.], seq 0, ack 3289070069, win 0, length 0
-21:46:19.695637 IP 10.10.1.10.34940 > 10.10.1.199.1029: Flags [S], seq 140319147, win 29200, options [mss 1460,sackOK,TS val 3547090335 ecr 0,nop,wscale 7], length 0
-21:46:19.695650 IP 10.10.1.199.1029 > 10.10.1.10.34940: Flags [R.], seq 0, ack 140319148, win 0, length 0
-21:46:19.695664 IP 10.10.1.10.45648 > 10.10.1.199.5060: Flags [S], seq 2203629201, win 29200, options [mss 1460,sackOK,TS val 3547090335 ecr 0,nop,wscale 7], length 0
-21:46:19.695775 IP 10.10.1.10.49028 > 10.10.1.199.2000: Flags [S], seq 635990431, win 29200, options [mss 1460,sackOK,TS val 3547090335 ecr 0,nop,wscale 7], length 0
-21:46:19.695790 IP 10.10.1.199.2000 > 10.10.1.10.49028: Flags [R.], seq 0, ack 635990432, win 0, length 0
-```
----
-### 15. Example Filter Showing Nmap NSE Script Testing
-
-In this example the Nmap NSE script `http-enum.nse` is shown testing for valid urls against an open HTTP service.
-
-On the Nmap machine:
-```d
-$ nmap -p 80 --script=http-enum.nse $targetip
-```
-
-On the target machine:
-```d
-$ tcpdump -nn port 80 | grep "GET /"
-```
-```
-GET /w3perl/ HTTP/1.1
-GET /w-agora/ HTTP/1.1
-GET /way-board/ HTTP/1.1
-GET /web800fo/ HTTP/1.1
-GET /webaccess/ HTTP/1.1
-GET /webadmin/ HTTP/1.1
-GET /webAdmin/ HTTP/1.1
-```
----
-### 16. Capture Start and End Packets of every non-local host
-
-This example is straight out of the `tcpdump` man page. By selecting on the `tcp-syn` and `tcp-fin` packets we can show each established TCP conversation with timestamps but without the data. As with many filters this allows the amount of noise to be reduced in order to focus in on the information that you care about.
-
-```d
-$ tcpdump 'tcp[tcpflags] & (tcp-syn|tcp-fin) != 0 and not src and dst net localnet'
-```
----
-### 17. Capture DNS Request and Response
-
-Outbound DNS request to Google public DNS and the A record (ip address) response can be seen in this capture.
-```d
-$ sudo tcpdump -i wlp58s0 -s0 port 53
-```
-```
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on wlp58s0, link-type EN10MB (Ethernet), capture size 262144 bytes
-14:19:06.879799 IP test.53852 > google-public-dns-a.google.com.domain: 26977+ [1au] A? play.google.com. (44)
-14:19:07.022618 IP google-public-dns-a.google.com.domain > test.53852: 26977 1/0/1 A 216.58.203.110 (60)
-```
 ---
 ### 18. Capture HTTP data packets
 
