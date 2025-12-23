@@ -2,12 +2,16 @@
 
 A practical, lab-friendly reference for using curl to inspect HTTP traffic, test APIs, debug authentication, and reproduce requests outside of Postman.
 
-ToDo: Map payloads to specific API endpoints and attack types
+_ToDo: Map payloads to specific API endpoints and attack types_
+
+Some of the more useful examples:
 
 - [HTTP Methods CRUD](#2-http-methods-crud)
 - [Headeras & Content Type](#3-headers--content-types)
 - [Authentication](#4-authentication)
 - [Cookies & Sessions](#5-cookies--sessions)
+
+---
 
 ### Using Payload Files for cURL Requests
 
