@@ -49,6 +49,7 @@ $ tcpdump -w /tmp/traffic.pcap -i eth0 -v 'tcp and net 192.168.2.0/24'
  -A = print ASCII
  -e = show mac addresses
  -c = number of bytes to capture
+ -l = line buffered mode
 ```
 
 **Filter by Port/Protocol**
@@ -187,6 +188,13 @@ tcpdump -nni eth0 dst 10.2.1.3 and not port 22
 Capture traffic originating from either source host
 ```sh
 tcpdump -nni eth0 src 10.2.3.4 or src 10.7.1.2
+```
+
+### Line Buffered Mode
+
+Without the option to force line (`-l`) buffered (or packet buffered `-C`) mode you will not always get the **expected response when piping** the `tcpdump` output to another command such as `grep`. By using this option the output is sent immediately to the piped command giving an immediate response when troubleshooting.
+```sh
+$ sudo tcpdump -i eth0 -s0 -l port 80 | grep 'Server:'
 ```
 
 ---
@@ -629,49 +637,9 @@ tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 ## Unsorted Notes
 
 
----
-
-### Display ASCII text
-
-Adding `-A` to the command line will have the output include the `ascii` strings from the capture. This allows easy reading and the ability to parse the output using `grep` or other commands. Another option that shows both hexadecimal output and ASCII is the `-X` option.
-```sh
-$ sudo tcpdump -A -s0 port 80
-$ sudo tcpdump -X -s0 port 80      // both ascii and hex
-```
-
-### Capture on Protocol
 
 
----
 
-### Capture Hosts based on IP address (host, src, dst)
-
-Using the `host` filter will capture traffic going to (**destination**) and from (**source**) the IP address.
-```sh
-$ sudo tcpdump -i eth0 host 10.10.1.1
-```
-
-Alternatively capture only packets going one way using `src` or `dst`.
-```sh
-$ sudo tcpdump -i eth0 dst 10.10.1.20
-$ sudo tcpdump -i eth0 src 10.10.1.20
-```
----
-
-### Write a capture file
-
-Writing a standard `pcap` file is a common command option. Writing a capture file to disk allows the file to be opened in Wireshark or other packet analysis tools.
-```sh
-$ sudo tcpdump -i eth0 -s0 -w test.pcap
-```
----
-
-### Line Buffered Mode
-
-Without the option to force line (`-l`) buffered (or packet buffered `-C`) mode you will not always get the **expected response when piping** the `tcpdump` output to another command such as `grep`. By using this option the output is sent immediately to the piped command giving an immediate response when troubleshooting.
-```sh
-$ sudo tcpdump -i eth0 -s0 -l port 80 | grep 'Server:'
-```
 ---
 
 ### Combine Filters
