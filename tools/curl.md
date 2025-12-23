@@ -6,7 +6,7 @@ ToDo: Map payloads to specific API endpoints and attack types
 
 [HTTP Methods CRUD](#2-http-methods-crud)
 [Headeras & Content Type](#3-headers--content-types)
-[Authentication]()
+[Authentication](#4-authentication)
 
 ### Using Payload Files for cURL Requests
 
