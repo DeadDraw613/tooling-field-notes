@@ -666,7 +666,7 @@ tcpdump 'udp and (dst 224.0.0.0/4 or broadcast)'
 
 ### Capture with tcpdump and view in Wireshark remotely
 
-Instead of capturing traffic on a remote system using `tcpdump` with the write file option, then copying the .pcap file to the local workstation for analysis w1th Wireshark, it is possible to feed the capture to Wireshark over the SSH connection in real time.
+Instead of capturing traffic on a remote system using `tcpdump` with the write file option, then copying the .pcap file to the local workstation for analysis with Wireshark, it is possible to feed the capture to Wireshark over the SSH connection in real time.
 
 Pipe the raw `tcpdump` output right into `wireshark` on your local machine. **Don't forget** the `not port 22` so you are not capturing your SSH traffic.
 ```sh
